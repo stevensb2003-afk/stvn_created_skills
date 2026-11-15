@@ -2661,18 +2661,29 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
     };
 
+    private void transitionPopover(PopupWindow popup, View panel, LinearLayout rows, int minWidthDp) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && panel instanceof ViewGroup) {
+            android.transition.AutoTransition tr = new android.transition.AutoTransition();
+            tr.setDuration(180);
+            android.transition.TransitionManager.beginDelayedTransition((ViewGroup) panel, tr);
+        }
+        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        int w = Math.max((int) (minWidthDp * density), panel.getMeasuredWidth());
+        popup.update(w, ViewGroup.LayoutParams.WRAP_CONTENT);
+        for (int i = 0; i < rows.getChildCount(); i++) {
+            View child = rows.getChildAt(i);
+            if (child.isFocusable()) {
+                child.requestFocus();
+                break;
+            }
+        }
+    }
+
     private void showSleepTimerMenu() {
         View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
         LinearLayout rows = panel.findViewById(R.id.rows);
         PopupWindow popup = glassPopup(panel, (int) (190 * density));
-        if (sleepRemainingSec > 0) {
-            addTimerRow(rows, popup, getString(R.string.timer_cancel), this::cancelSleepTimer);
-        } else {
-            for (int mins : new int[]{15, 30, 45, 60, 90, 120}) {
-                addTimerRow(rows, popup, getString(R.string.timer_min_fmt, mins), () -> startSleepTimer(mins));
-            }
-            addTimerRow(rows, popup, getString(R.string.timer_custom), this::showCustomTimerDialog);
-        }
+        renderTimerPresets(popup, panel, rows, false);
         panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         popup.setWidth(Math.max((int) (190 * density), panel.getMeasuredWidth()));
         dropIn(popup, panel, btnTimer, getResources().getBoolean(R.bool.rtl_menu_bar)
@@ -2680,50 +2691,58 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (rows.getChildCount() > 0) rows.getChildAt(0).requestFocus();
     }
 
-    private void addTimerRow(LinearLayout rows, PopupWindow popup, String label, Runnable action) {
-        View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
-        row.findViewById(R.id.icon).setVisibility(View.GONE);
-        row.findViewById(R.id.dot).setVisibility(View.GONE);
-        row.findViewById(R.id.status).setVisibility(View.GONE);
-        ((TextView) row.findViewById(R.id.title)).setText(label);
-        row.setOnClickListener(v -> {
-            popup.dismiss();
-            action.run();
-        });
-        rows.addView(row);
+    private void renderTimerPresets(PopupWindow popup, View panel, LinearLayout rows, boolean animate) {
+        rows.removeAllViews();
+        if (sleepRemainingSec > 0) {
+            addTimerRow(rows, popup, getString(R.string.timer_cancel), this::cancelSleepTimer);
+        } else {
+            for (int mins : new int[]{15, 30, 45, 60, 90, 120}) {
+                addTimerRow(rows, popup, getString(R.string.timer_min_fmt, mins), () -> startSleepTimer(mins));
+            }
+            addTimerRow(rows, null, getString(R.string.timer_custom),
+                    () -> renderTimerCustom(popup, panel, rows));
+        }
+        if (animate) transitionPopover(popup, panel, rows, 190);
     }
 
-    private void showCustomTimerDialog() {
+    private void renderTimerCustom(PopupWindow popup, View panel, LinearLayout rows) {
+        rows.removeAllViews();
         final int[] minutes = {30};
-        LinearLayout box = new LinearLayout(this);
-        box.setOrientation(LinearLayout.HORIZONTAL);
-        box.setGravity(Gravity.CENTER);
-        int pad = (int) (16 * density);
-        box.setPadding(pad, pad, pad, pad);
+
+        LinearLayout stepper = new LinearLayout(this);
+        stepper.setOrientation(LinearLayout.HORIZONTAL);
+        stepper.setGravity(Gravity.CENTER);
+        int padH = (int) (8 * density);
+        int padV = (int) (6 * density);
+        stepper.setPadding(padH, padV, padH, padV);
 
         TextView minus = new TextView(this);
-        minus.setText("  - 5  ");
-        minus.setTextSize(18f);
-        minus.setTextColor(0xFFFFFFFF);
+        minus.setText("-5");
+        minus.setTextSize(15f);
+        minus.setGravity(Gravity.CENTER);
+        minus.setTextColor(getResources().getColorStateList(R.drawable.pill_text, getTheme()));
+        minus.setBackgroundResource(R.drawable.input_row_bg);
         minus.setFocusable(true);
         minus.setClickable(true);
-        minus.setPadding(pad, pad / 2, pad, pad / 2);
-        minus.setBackgroundResource(R.drawable.pill_bg);
+        minus.setLayoutParams(new LinearLayout.LayoutParams((int) (54 * density), (int) (38 * density)));
 
         TextView value = new TextView(this);
         value.setText(getString(R.string.timer_min_fmt, minutes[0]));
-        value.setTextSize(22f);
+        value.setTextSize(17f);
+        value.setGravity(Gravity.CENTER);
         value.setTextColor(0xFFFFFFFF);
-        value.setPadding(pad * 2, 0, pad * 2, 0);
+        LinearLayout.LayoutParams valLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        value.setLayoutParams(valLp);
 
         TextView plus = new TextView(this);
-        plus.setText("  + 5  ");
-        plus.setTextSize(18f);
-        plus.setTextColor(0xFFFFFFFF);
+        plus.setText("+5");
+        plus.setTextSize(15f);
+        plus.setGravity(Gravity.CENTER);
+        plus.setTextColor(getResources().getColorStateList(R.drawable.pill_text, getTheme()));
+        plus.setBackgroundResource(R.drawable.input_row_bg);
         plus.setFocusable(true);
         plus.setClickable(true);
-        plus.setPadding(pad, pad / 2, pad, pad / 2);
-        plus.setBackgroundResource(R.drawable.pill_bg);
+        plus.setLayoutParams(new LinearLayout.LayoutParams((int) (54 * density), (int) (38 * density)));
 
         minus.setOnClickListener(v -> {
             minutes[0] = Math.max(5, minutes[0] - 5);
@@ -2733,16 +2752,31 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             minutes[0] = Math.min(360, minutes[0] + 5);
             value.setText(getString(R.string.timer_min_fmt, minutes[0]));
         });
-        box.addView(minus);
-        box.addView(value);
-        box.addView(plus);
 
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.timer_custom_title)
-                .setView(box)
-                .setPositiveButton(R.string.timer_start, (d, w) -> startSleepTimer(minutes[0]))
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
+        stepper.addView(minus);
+        stepper.addView(value);
+        stepper.addView(plus);
+        rows.addView(stepper);
+
+        addTimerRow(rows, popup, getString(R.string.timer_start), () -> startSleepTimer(minutes[0]));
+        addTimerRow(rows, null, getString(R.string.action_back),
+                () -> renderTimerPresets(popup, panel, rows, true));
+
+        transitionPopover(popup, panel, rows, 248);
+        plus.requestFocus();
+    }
+
+    private void addTimerRow(LinearLayout rows, PopupWindow popup, String label, Runnable action) {
+        View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
+        row.findViewById(R.id.icon).setVisibility(View.GONE);
+        row.findViewById(R.id.dot).setVisibility(View.GONE);
+        row.findViewById(R.id.status).setVisibility(View.GONE);
+        ((TextView) row.findViewById(R.id.title)).setText(label);
+        row.setOnClickListener(v -> {
+            if (popup != null) popup.dismiss();
+            action.run();
+        });
+        rows.addView(row);
     }
 
     private void startSleepTimer(int minutes) {
@@ -2850,7 +2884,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     private void addMenuRow(LinearLayout rows, PopupWindow popup, String title, String status,
-                            boolean active, int iconRes, Runnable action) {
+                            boolean active, boolean locked, int iconRes, Runnable action) {
         View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
         android.widget.ImageView icon = row.findViewById(R.id.icon);
         if (iconRes != 0) {
@@ -2859,8 +2893,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         } else {
             icon.setVisibility(View.GONE);
         }
-        View dot = row.findViewById(R.id.dot);
-        dot.setVisibility(active ? View.VISIBLE : View.GONE);
+        row.findViewById(R.id.dot).setVisibility(active ? View.VISIBLE : View.GONE);
+        View lockView = row.findViewById(R.id.lockIcon);
+        if (lockView != null) lockView.setVisibility(locked ? View.VISIBLE : View.GONE);
         TextView statusView = row.findViewById(R.id.status);
         if (status != null && !status.isEmpty()) {
             statusView.setText(status);
@@ -2881,27 +2916,37 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         rows.addView(row);
     }
 
-    @SuppressWarnings("deprecation")
     private void showWifiMenu() {
         View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
         LinearLayout rows = panel.findViewById(R.id.rows);
-        PopupWindow popup = glassPopup(panel, (int) (270 * density));
+        PopupWindow popup = glassPopup(panel, (int) (248 * density));
+        renderWifiList(popup, panel, rows, false);
+        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        popup.setWidth(Math.max((int) (248 * density), panel.getMeasuredWidth()));
+        dropIn(popup, panel, btnWifi, getResources().getBoolean(R.bool.rtl_menu_bar)
+                ? Gravity.START : Gravity.END);
+        if (rows.getChildCount() > 0) rows.getChildAt(0).requestFocus();
+    }
 
+    @SuppressWarnings("deprecation")
+    private void renderWifiList(PopupWindow popup, View panel, LinearLayout rows, boolean animate) {
+        rows.removeAllViews();
         if (!vpnApp.isEmpty()) {
             Intent vpnIntent = getPackageManager().getLeanbackLaunchIntentForPackage(vpnApp);
             if (vpnIntent == null) vpnIntent = getPackageManager().getLaunchIntentForPackage(vpnApp);
             if (vpnIntent != null) {
                 Intent launchVpn = vpnIntent;
-                addMenuRow(rows, popup, "VPN", null, false, R.drawable.ic_wifi, () -> open(launchVpn));
+                addMenuRow(rows, popup, "VPN", null, false, false, R.drawable.ic_wifi, () -> open(launchVpn));
             }
         }
 
         WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (wm != null && wm.isWifiEnabled()) {
             try { wm.startScan(); } catch (Exception ignored) {}
+            WifiInfo info = null;
             String currentSsid = null;
             try {
-                WifiInfo info = wm.getConnectionInfo();
+                info = wm.getConnectionInfo();
                 if (info != null && info.getSSID() != null) {
                     String s = info.getSSID().replace("\"", "");
                     if (!s.isEmpty() && !"<unknown ssid>".equalsIgnoreCase(s)) currentSsid = s;
@@ -2925,22 +2970,19 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             java.util.LinkedHashSet<String> shown = new java.util.LinkedHashSet<>();
             if (currentSsid != null) {
                 shown.add(currentSsid);
-                addMenuRow(rows, popup, currentSsid, getString(R.string.connected), true, R.drawable.ic_wifi, null);
+                String activeSsid = currentSsid;
+                WifiInfo activeInfo = info;
+                Integer activeNetId = savedBySsid.get(activeSsid);
+                addMenuRow(rows, null, activeSsid, null, true, false, R.drawable.ic_wifi,
+                        () -> renderWifiDetails(popup, panel, rows, wm, activeSsid, activeNetId, true, activeInfo));
             }
             for (java.util.Map.Entry<String, Integer> entry : savedBySsid.entrySet()) {
                 String ssid = entry.getKey();
                 if (shown.contains(ssid)) continue;
                 shown.add(ssid);
                 int netId = entry.getValue();
-                addMenuRow(rows, popup, ssid, getString(R.string.wifi_saved), false, R.drawable.ic_wifi, () -> {
-                    try {
-                        wm.enableNetwork(netId, true);
-                        wm.reconnect();
-                        Toast.makeText(this, getString(R.string.wifi_connecting, ssid), Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
-                    }
-                });
+                addMenuRow(rows, null, ssid, null, false, false, R.drawable.ic_wifi,
+                        () -> renderWifiDetails(popup, panel, rows, wm, ssid, netId, false, null));
             }
             try {
                 List<ScanResult> scans = wm.getScanResults();
@@ -2954,8 +2996,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                         String caps = sr.capabilities != null ? sr.capabilities.toUpperCase(Locale.ROOT) : "";
                         boolean secured = caps.contains("WPA") || caps.contains("PSK")
                                 || caps.contains("SAE") || caps.contains("WEP") || caps.contains("EAP");
-                        String label = getString(secured ? R.string.wifi_secured : R.string.wifi_open);
-                        addMenuRow(rows, popup, s, label, false, R.drawable.ic_wifi, () -> {
+                        addMenuRow(rows, popup, s, null, false, secured, R.drawable.ic_wifi, () -> {
                             if (secured) {
                                 showWifiPasswordDialog(wm, s, caps);
                             } else {
@@ -2967,17 +3008,63 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 }
             } catch (SecurityException ignored) {}
         } else {
-            addMenuRow(rows, popup, getString(R.string.wifi_off), null, false, 0, null);
+            addMenuRow(rows, popup, getString(R.string.wifi_off), null, false, false, 0, null);
         }
 
-        addMenuRow(rows, popup, getString(R.string.wifi_system_settings), null, false,
+        addMenuRow(rows, popup, getString(R.string.wifi_system_settings), null, false, false,
                 R.drawable.ic_settings, () -> open(systemIntent(Settings.ACTION_WIFI_SETTINGS)));
 
-        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-        popup.setWidth(Math.max((int) (270 * density), panel.getMeasuredWidth()));
-        dropIn(popup, panel, btnWifi, getResources().getBoolean(R.bool.rtl_menu_bar)
-                ? Gravity.START : Gravity.END);
-        if (rows.getChildCount() > 0) rows.getChildAt(0).requestFocus();
+        if (animate) transitionPopover(popup, panel, rows, 248);
+    }
+
+    @SuppressWarnings("deprecation")
+    private void renderWifiDetails(PopupWindow popup, View panel, LinearLayout rows, WifiManager wm,
+                                   String ssid, Integer netId, boolean isConnected, WifiInfo info) {
+        rows.removeAllViews();
+        addMenuRow(rows, null, ssid, null, isConnected, false, R.drawable.ic_wifi, null);
+        if (isConnected && info != null) {
+            int pct = WifiManager.calculateSignalLevel(info.getRssi(), 101);
+            int speed = Math.max(0, info.getLinkSpeed());
+            String band = info.getFrequency() >= 4900 ? "5 GHz" : "2.4 GHz";
+            addMenuRow(rows, null, getString(R.string.wifi_status_fmt, pct, speed, band),
+                    null, false, false, 0, null);
+            int ipInt = info.getIpAddress();
+            if (ipInt != 0) {
+                String ipStr = android.text.format.Formatter.formatIpAddress(ipInt);
+                addMenuRow(rows, null, "IP: " + ipStr, null, false, false, 0, null);
+            }
+            addMenuRow(rows, popup, getString(R.string.action_disconnect), null, false, false, 0, () -> {
+                try {
+                    wm.disconnect();
+                    Toast.makeText(this, getString(R.string.wifi_disconnected, ssid), Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
+                }
+            });
+        } else if (netId != null) {
+            addMenuRow(rows, popup, getString(R.string.action_connect), null, false, false, 0, () -> {
+                try {
+                    wm.enableNetwork(netId, true);
+                    wm.reconnect();
+                    Toast.makeText(this, getString(R.string.wifi_connecting, ssid), Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
+                }
+            });
+            addMenuRow(rows, popup, getString(R.string.wifi_forget), null, false, false, 0, () -> {
+                try {
+                    if (wm.removeNetwork(netId)) {
+                        wm.saveConfiguration();
+                        Toast.makeText(this, getString(R.string.wifi_forgot, ssid), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                } catch (Exception ignored) {}
+                open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
+            });
+        }
+        addMenuRow(rows, null, getString(R.string.action_back), null, false, false, 0,
+                () -> renderWifiList(popup, panel, rows, true));
+        transitionPopover(popup, panel, rows, 260);
     }
 
     private void showWifiPasswordDialog(WifiManager wm, String ssid, String capabilities) {
@@ -3032,13 +3119,22 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private void showBluetoothMenu() {
         View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
         LinearLayout rows = panel.findViewById(R.id.rows);
-        PopupWindow popup = glassPopup(panel, (int) (270 * density));
+        PopupWindow popup = glassPopup(panel, (int) (248 * density));
+        renderBluetoothList(popup, panel, rows, false);
+        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        popup.setWidth(Math.max((int) (248 * density), panel.getMeasuredWidth()));
+        dropIn(popup, panel, btnBluetooth, getResources().getBoolean(R.bool.rtl_menu_bar)
+                ? Gravity.START : Gravity.END);
+        if (rows.getChildCount() > 0) rows.getChildAt(0).requestFocus();
+    }
 
+    private void renderBluetoothList(PopupWindow popup, View panel, LinearLayout rows, boolean animate) {
+        rows.removeAllViews();
         try {
             BluetoothManager bm = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
             BluetoothAdapter adapterBt = bm != null ? bm.getAdapter() : BluetoothAdapter.getDefaultAdapter();
             if (adapterBt == null || !adapterBt.isEnabled()) {
-                addMenuRow(rows, popup, getString(R.string.bt_off), null, false, 0, null);
+                addMenuRow(rows, popup, getString(R.string.bt_off), null, false, false, 0, null);
             } else {
                 String adapterName = adapterBt.getName();
                 Set<BluetoothDevice> bonded = adapterBt.getBondedDevices();
@@ -3052,39 +3148,46 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 }
                 devices.sort((a, b) -> Boolean.compare(isBluetoothDeviceConnected(b), isBluetoothDeviceConnected(a)));
                 if (devices.isEmpty()) {
-                    addMenuRow(rows, popup, getString(R.string.bt_none), null, false, 0, null);
+                    addMenuRow(rows, popup, getString(R.string.bt_none), null, false, false, 0, null);
                 } else {
                     for (BluetoothDevice dev : devices) {
                         String name = dev.getName();
                         boolean connected = isBluetoothDeviceConnected(dev);
                         int battery = readBluetoothBattery(dev);
-                        String status;
-                        if (connected && battery >= 0) {
-                            status = getString(R.string.connected) + " · " + battery + "%";
-                        } else if (connected) {
-                            status = getString(R.string.connected);
-                        } else if (battery >= 0) {
-                            status = battery + "%";
-                        } else {
-                            status = getString(R.string.bt_paired);
-                        }
-                        addMenuRow(rows, popup, name, status, connected, R.drawable.ic_bluetooth,
-                                () -> toggleBluetoothDeviceConnection(dev, name, connected));
+                        String status = battery >= 0 ? (battery + "%") : null;
+                        addMenuRow(rows, null, name, status, connected, false, R.drawable.ic_bluetooth,
+                                () -> renderBluetoothDetails(popup, panel, rows, dev, name, connected, battery));
                     }
                 }
             }
         } catch (SecurityException e) {
-            addMenuRow(rows, popup, getString(R.string.bt_none), null, false, 0, null);
+            addMenuRow(rows, popup, getString(R.string.bt_none), null, false, false, 0, null);
         }
 
-        addMenuRow(rows, popup, getString(R.string.bt_system_settings), null, false,
+        addMenuRow(rows, popup, getString(R.string.bt_system_settings), null, false, false,
                 R.drawable.ic_settings, this::openBluetoothSettings);
 
-        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-        popup.setWidth(Math.max((int) (270 * density), panel.getMeasuredWidth()));
-        dropIn(popup, panel, btnBluetooth, getResources().getBoolean(R.bool.rtl_menu_bar)
-                ? Gravity.START : Gravity.END);
-        if (rows.getChildCount() > 0) rows.getChildAt(0).requestFocus();
+        if (animate) transitionPopover(popup, panel, rows, 248);
+    }
+
+    private void renderBluetoothDetails(PopupWindow popup, View panel, LinearLayout rows,
+                                        BluetoothDevice dev, String name, boolean connected, int battery) {
+        rows.removeAllViews();
+        String status = battery >= 0 ? (battery + "%") : null;
+        addMenuRow(rows, null, name, status, connected, false, R.drawable.ic_bluetooth, null);
+        addMenuRow(rows, popup, getString(connected ? R.string.action_disconnect : R.string.action_connect),
+                null, false, false, 0, () -> toggleBluetoothDeviceConnection(dev, name, connected));
+        addMenuRow(rows, popup, getString(R.string.bt_unpair), null, false, false, 0, () -> {
+            try {
+                dev.getClass().getMethod("removeBond").invoke(dev);
+                Toast.makeText(this, getString(R.string.bt_unpaired, name), Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                openBluetoothSettings();
+            }
+        });
+        addMenuRow(rows, null, getString(R.string.action_back), null, false, false, 0,
+                () -> renderBluetoothList(popup, panel, rows, true));
+        transitionPopover(popup, panel, rows, 248);
     }
 
     private void toggleBluetoothDeviceConnection(BluetoothDevice dev, String name, boolean currentlyConnected) {

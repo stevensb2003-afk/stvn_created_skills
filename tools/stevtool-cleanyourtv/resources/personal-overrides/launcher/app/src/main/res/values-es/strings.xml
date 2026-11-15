@@ -29,6 +29,15 @@
     <string name="wifi_secured">Requiere contraseña</string>
     <string name="wifi_open">Abierta</string>
     <string name="wifi_failed">Abre Ajustes de Wi-Fi para completar la conexión</string>
+    <string name="action_back">Volver</string>
+    <string name="action_connect">Conectar</string>
+    <string name="action_disconnect">Desconectar</string>
+    <string name="wifi_forget">Olvidar red</string>
+    <string name="wifi_disconnected">Desconectado de %1$s</string>
+    <string name="wifi_forgot">Red %1$s olvidada</string>
+    <string name="wifi_status_fmt">%1$d%% señal · %2$d Mbps · %3$s</string>
+    <string name="bt_unpair">Desvincular</string>
+    <string name="bt_unpaired">%1$s desvinculado</string>
     <string name="settings">Ajustes</string>
     <string name="choose_input">Entradas</string>
     <string name="connected">Conectado</string>

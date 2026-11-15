@@ -29,6 +29,15 @@
     <string name="wifi_secured">Password required</string>
     <string name="wifi_open">Open</string>
     <string name="wifi_failed">Open Wi-Fi settings to finish connecting</string>
+    <string name="action_back">Back</string>
+    <string name="action_connect">Connect</string>
+    <string name="action_disconnect">Disconnect</string>
+    <string name="wifi_forget">Forget network</string>
+    <string name="wifi_disconnected">Disconnected from %1$s</string>
+    <string name="wifi_forgot">Forgot %1$s</string>
+    <string name="wifi_status_fmt">%1$d%% signal · %2$d Mbps · %3$s</string>
+    <string name="bt_unpair">Unpair device</string>
+    <string name="bt_unpaired">Unpaired %1$s</string>
     <string name="settings">Settings</string>
     <string name="choose_input">Inputs</string>
     <string name="connected">Connected</string>

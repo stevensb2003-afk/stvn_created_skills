@@ -23,10 +23,14 @@ index d1e37b9f..3f2d2bcc 100644
  
  # Optional, uncomment if unused
 diff --git a/launcher/app/src/main/AndroidManifest.xml b/launcher/app/src/main/AndroidManifest.xml
-index 1f96dd06..ed0b6184 100644
+index 1f96dd06..ff912c3c 100644
 --- a/launcher/app/src/main/AndroidManifest.xml
 +++ b/launcher/app/src/main/AndroidManifest.xml
-@@ -12,8 +12,8 @@
+@@ -9,11 +9,15 @@
+ 
+     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
++    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
      <!-- Needed since Android 10 to read the Wi-Fi network name for the network pill. Never requested at
           runtime: build-and-install grants it with pm grant, so lint's Android 12 "ask for COARSE with
           FINE" rule does not apply here. -->
@@ -34,14 +38,17 @@ index 1f96dd06..ed0b6184 100644
 -        tools:ignore="CoarseFineLocation" />
 +    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 +    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
++    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
++    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
++    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" tools:ignore="ProtectedPermissions" />
  
      <!-- Android 11+ package visibility: lets the launcher list the TV apps it shows as tiles, and the
           apps that declare a module card (docs/specs/card.md). -->
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java b/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
-index 5b9d0715..809fa51f 100644
+index 5b9d0715..31ceac91 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
-@@ -11,9 +11,16 @@ import android.content.res.Resources;
+@@ -11,9 +11,18 @@ import android.content.res.Resources;
  import android.graphics.Bitmap;
  import android.graphics.Canvas;
  import android.graphics.Color;
@@ -52,16 +59,20 @@ index 5b9d0715..809fa51f 100644
 +import android.graphics.Shader;
 +import android.graphics.Typeface;
 +import android.graphics.drawable.BitmapDrawable;
++import android.graphics.Paint;
++import android.graphics.Typeface;
  import android.graphics.drawable.Drawable;
 +import android.media.tv.TvInputInfo;
 +import android.media.tv.TvInputManager;
  import android.net.Uri;
  import android.provider.Settings;
  import android.util.DisplayMetrics;
-@@ -56,10 +63,11 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -56,10 +65,13 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          void onLibraryRequested();
          void onLibraryFocused();
          void onLibraryUp();
++        void onFooterReorderRequested();
++        void onFooterLauncherSettingsRequested();
 +        void onInputSelected(String inputId);
      }
  
@@ -71,7 +82,7 @@ index 5b9d0715..809fa51f 100644
  
          final int kind;
          final String label;
-@@ -71,12 +79,21 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -71,12 +83,21 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          final String name;
          /** Ambient glow colour; 0 until sampled from the banner, or the card's accent from the start. */
          int ambient;
@@ -94,7 +105,7 @@ index 5b9d0715..809fa51f 100644
              this.kind = kind;
              this.label = label;
              this.component = component;
-@@ -85,6 +102,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -85,6 +106,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
              this.icon = icon;
              this.name = caption == null ? label : label + " \u00B7 " + caption;
              this.ambient = accent;
@@ -103,7 +114,7 @@ index 5b9d0715..809fa51f 100644
          }
      }
  
-@@ -189,6 +208,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -189,6 +212,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      /** Packages with a leanback entry at the last reload(): their tiles launch with the leanback category. */
      private Set<String> leanbackPackages = new HashSet<>();
      private final boolean showHomeSettings;
@@ -111,7 +122,7 @@ index 5b9d0715..809fa51f 100644
      /** Calmer motion for weak GPUs (config.xml, reduced_motion): no overshoot, shorter fades. */
      private final boolean reducedMotion;
      /** Package to the action its tile sends instead of the start screen (config.xml, launch_actions). */
-@@ -207,6 +227,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -207,6 +231,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          this.animations = cfg.animations;
          this.advancedEffects = cfg.animations && cfg.advancedEffects;
          this.showHomeSettings = cfg.showHomeSettingsShortcut;
@@ -119,7 +130,7 @@ index 5b9d0715..809fa51f 100644
          this.showLibrary = cfg.appLibrary;
          this.reducedMotion = cfg.reducedMotion;
          this.rowsBelowDock = cfg.rowsBelowDock;
-@@ -270,17 +291,55 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -270,17 +295,55 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                  fresh.add(new Entry(label, component, banner, icon));
              }
          }
@@ -184,7 +195,7 @@ index 5b9d0715..809fa51f 100644
              boolean ca = a.kind == Entry.CARD, cb = b.kind == Entry.CARD;
              if (ca != cb) return ca ? -1 : 1;
              return a.label.compareToIgnoreCase(b.label);
-@@ -293,7 +352,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -293,7 +356,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                      ctx.getDrawable(R.drawable.ic_home_settings), null, 0));
          }
          docked = 0;
@@ -193,7 +204,7 @@ index 5b9d0715..809fa51f 100644
          emptySlots = dockRow && !reordering ? DockSlots.empty(docked, dockSize, fresh.size(), fillDock) : 0;
          for (int i = 0; i < emptySlots; i++) {
              fresh.add(docked + i, new Entry(Entry.EMPTY, "", new ComponentName(ctx, "empty-dock-slot-" + i),
-@@ -304,13 +363,156 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -304,13 +367,156 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          notifyDataSetChanged();
      }
  
@@ -350,7 +361,66 @@ index 5b9d0715..809fa51f 100644
      private Drawable loadBanner(PackageManager pm, ResolveInfo ri) {
          int id = ri.activityInfo.banner;
          if (id == 0) id = ri.activityInfo.applicationInfo.banner;
-@@ -419,25 +621,34 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -342,15 +548,50 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+         if (viewType == 1) {
+             View row = LayoutInflater.from(ctx).inflate(R.layout.row_app_library, parent, false);
+-            View button = row.findViewById(R.id.btnLibrary);
+-            button.setOnClickListener(v -> listener.onLibraryRequested());
+-            button.setOnFocusChangeListener((v, focused) -> { if (focused) listener.onLibraryFocused(); });
+-            button.setOnKeyListener((v, key, event) -> {
++            View btnLibrary = row.findViewById(R.id.btnLibrary);
++            TextView btnEdit = row.findViewById(R.id.btnFooterEdit);
++            TextView btnSettings = row.findViewById(R.id.btnFooterLauncherSettings);
++            final Typeface footerRegular = btnEdit.getTypeface();
++
++            btnLibrary.setVisibility(showLibrary ? View.VISIBLE : View.GONE);
++            btnLibrary.setOnClickListener(v -> listener.onLibraryRequested());
++            btnEdit.setOnClickListener(v -> listener.onFooterReorderRequested());
++            btnSettings.setOnClickListener(v -> listener.onFooterLauncherSettingsRequested());
++
++            View.OnFocusChangeListener focusListener = (v, focused) -> {
++                if (v == btnEdit || v == btnSettings) {
++                    TextView tv = (TextView) v;
++                    tv.setTextColor(focused ? 0xFFFFFFFF : 0x80FFFFFF);
++                    tv.setTypeface(footerRegular, focused ? Typeface.BOLD : Typeface.NORMAL);
++                    int flags = tv.getPaintFlags();
++                    tv.setPaintFlags(focused ? (flags | Paint.UNDERLINE_TEXT_FLAG) : (flags & ~Paint.UNDERLINE_TEXT_FLAG));
++                }
++                if (focused) listener.onLibraryFocused();
++            };
++            btnLibrary.setOnFocusChangeListener(focusListener);
++            btnEdit.setOnFocusChangeListener(focusListener);
++            btnSettings.setOnFocusChangeListener(focusListener);
++
++            View.OnKeyListener keyListener = (v, key, event) -> {
+                 if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
+-                if (key == KeyEvent.KEYCODE_DPAD_UP) listener.onLibraryUp();
+-                return key == KeyEvent.KEYCODE_DPAD_UP || key == KeyEvent.KEYCODE_DPAD_DOWN
+-                        || key == KeyEvent.KEYCODE_DPAD_LEFT || key == KeyEvent.KEYCODE_DPAD_RIGHT;
+-            });
++                if (key == KeyEvent.KEYCODE_DPAD_UP) {
++                    listener.onLibraryUp();
++                    return true;
++                }
++                if (key == KeyEvent.KEYCODE_DPAD_DOWN) return true;
++                if (key == KeyEvent.KEYCODE_DPAD_LEFT) {
++                    if (v == btnLibrary) return true;
++                    if (v == btnEdit && !showLibrary) return true;
++                    return false;
++                }
++                if (key == KeyEvent.KEYCODE_DPAD_RIGHT) {
++                    return v == btnSettings;
++                }
++                return false;
++            };
++            btnLibrary.setOnKeyListener(keyListener);
++            btnEdit.setOnKeyListener(keyListener);
++            btnSettings.setOnKeyListener(keyListener);
+             return new RecyclerView.ViewHolder(row) { };
+         }
+         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_app, parent, false);
+@@ -419,25 +660,34 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
              h.label.setVisibility(View.VISIBLE);
          }
          h.card.setOnClickListener(v -> launch(e));
@@ -395,6 +465,21 @@ index 5b9d0715..809fa51f 100644
                  .setComponent(e.component)
                  .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
          // TV apps launch with the same leanback intent as from the stock launcher or the remote, so an app
+@@ -462,12 +712,12 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+ 
+     @Override
+     public int getItemCount() {
+-        return items.size() + (showLibrary ? 1 : 0);
++        return items.size() + 1;
+     }
+ 
+     int appCount() { return items.size(); }
+ 
+-    boolean isLibraryAt(int position) { return showLibrary && position == items.size(); }
++    boolean isLibraryAt(int position) { return position == items.size(); }
+ 
+     @Override public int getItemViewType(int position) { return isLibraryAt(position) ? 1 : 0; }
+ 
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/Config.java b/launcher/app/src/main/java/com/gathin/tvhome/Config.java
 index 8f41173e..2e566a22 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/Config.java
@@ -529,10 +614,80 @@ index b48bc9e4..47eaf070 100644
      }
  
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
-index c38133ee..4acb6210 100644
+index c38133ee..f2d325a6 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
-@@ -226,11 +226,23 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3,7 +3,12 @@ package com.gathin.tvhome;
+ import android.animation.ArgbEvaluator;
+ import android.animation.ValueAnimator;
+ import android.app.Activity;
++import android.app.AlertDialog;
+ import android.app.Dialog;
++import android.bluetooth.BluetoothAdapter;
++import android.bluetooth.BluetoothDevice;
++import android.bluetooth.BluetoothManager;
++import android.bluetooth.BluetoothProfile;
+ import android.content.ActivityNotFoundException;
+ import android.content.BroadcastReceiver;
+ import android.content.ComponentName;
+@@ -11,6 +16,7 @@ import android.content.Context;
+ import android.content.Intent;
+ import android.content.IntentFilter;
+ import android.content.pm.ApplicationInfo;
++import android.content.pm.PackageManager;
+ import android.graphics.Bitmap;
+ import android.graphics.Canvas;
+ import android.graphics.Color;
+@@ -23,6 +29,7 @@ import android.graphics.drawable.BitmapDrawable;
+ import android.graphics.drawable.ColorDrawable;
+ import android.graphics.drawable.Drawable;
+ import android.graphics.drawable.GradientDrawable;
++import android.media.AudioManager;
+ import android.media.tv.TvContract;
+ import android.media.tv.TvInputInfo;
+ import android.media.tv.TvInputManager;
+@@ -31,6 +38,8 @@ import android.net.Network;
+ import android.net.NetworkCapabilities;
+ import android.net.NetworkRequest;
+ import android.net.Uri;
++import android.net.wifi.ScanResult;
++import android.net.wifi.WifiConfiguration;
+ import android.net.wifi.WifiInfo;
+ import android.net.wifi.WifiManager;
+ import android.os.Build;
+@@ -42,16 +51,19 @@ import android.os.Looper;
+ import android.os.SystemClock;
+ import android.provider.Settings;
+ import android.text.SpannableString;
++import android.text.SpannableStringBuilder;
+ import android.text.Spanned;
+ import android.text.TextPaint;
+ import android.text.TextUtils;
+ import android.text.style.ForegroundColorSpan;
++import android.text.style.RelativeSizeSpan;
+ import android.util.TypedValue;
+ import android.view.Gravity;
+ import android.view.KeyEvent;
+ import android.view.View;
+ import android.view.SoundEffectConstants;
+ import android.view.ViewGroup;
++import android.view.ViewTreeObserver;
+ import android.view.Window;
+ import android.view.animation.AnimationUtils;
+ import android.view.animation.LayoutAnimationController;
+@@ -130,7 +142,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+     private boolean advancedEffects;
+     private TextView greeting;
+     private View btnInputs;
+-    private TextView btnWifi;
++    private TextView btnWifi, btnBluetooth, btnTimer;
++    private final Map<String, Integer> btBatteryByAddr = new HashMap<>();
++    private int sleepRemainingSec = 0;
++    private boolean btReceiverRegistered = false;
+     private TextView shamsiDate;
+     private TextView stats;
+     private List<RaceWeekend.Race> raceCalendar;
+@@ -226,11 +241,23 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          @Override
          public void onInputAdded(String inputId) {
              updateInputsButton();
@@ -556,27 +711,30 @@ index c38133ee..4acb6210 100644
          }
      };
      /** Listens for any VPN coming up or going down, even one this app's traffic is excluded from. */
-@@ -471,6 +483,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -471,13 +498,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          }
  
          btnInputs = findViewById(R.id.btnInputs);
-+        View btnBluetooth = findViewById(R.id.btnBluetooth);
++        btnBluetooth = findViewById(R.id.btnBluetooth);
++        btnTimer = findViewById(R.id.btnTimer);
          View btnSettings = findViewById(R.id.btnSettings);
          btnInputs.setOnClickListener(v -> showInputs());
-         btnWifi.setOnClickListener(v -> openNetworkPill());
-@@ -478,6 +491,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+-        btnWifi.setOnClickListener(v -> openNetworkPill());
++        btnWifi.setOnClickListener(v -> showWifiMenu());
+         btnWifi.setOnLongClickListener(v -> {
              open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
              return true;
          });
-+        btnBluetooth.setOnClickListener(v -> openBluetoothSettings());
++        btnBluetooth.setOnClickListener(v -> showBluetoothMenu());
 +        btnBluetooth.setOnLongClickListener(v -> {
 +            open(new Intent("com.google.android.intent.action.CONNECT_INPUT"));
 +            return true;
 +        });
++        btnTimer.setOnClickListener(v -> showSleepTimerMenu());
          btnSettings.setOnClickListener(v -> open(systemIntent(Settings.ACTION_SETTINGS)));
          btnReorder = findViewById(R.id.btnReorder);
          btnReorder.setOnClickListener(v -> toggleReorder());
-@@ -498,7 +516,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -498,7 +533,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                  focusTile(lastFocused % COLUMNS);
                  return true;
              }
@@ -585,20 +743,152 @@ index c38133ee..4acb6210 100644
              int leftButton = rtlMenuBar ? R.id.btnSettings : firstButton;
              int rightButton = rtlMenuBar ? firstButton : R.id.btnSettings;
              if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) return v.getId() == leftButton;
-@@ -506,10 +524,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -506,29 +541,41 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          };
          btnInputs.setOnKeyListener(pillKeys);
          btnWifi.setOnKeyListener(pillKeys);
 +        btnBluetooth.setOnKeyListener(pillKeys);
++        btnTimer.setOnKeyListener(pillKeys);
          btnSettings.setOnKeyListener(pillKeys);
          btnReorder.setOnKeyListener(pillKeys);
          if (advancedEffects) {
 -            for (View button : new View[]{btnInputs, btnWifi, btnReorder, btnSettings}) {
-+            for (View button : new View[]{btnInputs, btnWifi, btnBluetooth, btnReorder, btnSettings}) {
++            for (View button : new View[]{btnWifi, btnBluetooth, btnInputs, btnTimer, btnReorder, btnSettings}) {
                  button.setOnFocusChangeListener((view, focused) -> view.animate()
                          .scaleX(focused ? 1.04f : 1f).scaleY(focused ? 1.04f : 1f)
                          .setDuration(160).start());
-@@ -1968,6 +1987,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+             }
+         }
++        IntentFilter btFilter = new IntentFilter();
++        btFilter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
++        btFilter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
++        btFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
++        btFilter.addAction("android.bluetooth.device.action.BATTERY_LEVEL_CHANGED");
++        registerReceiver(btReceiver, btFilter);
++        btReceiverRegistered = true;
++        updateBluetoothButton();
++        updateTimerButton();
+         if (festive) applyFestiveSkin((TextView) btnInputs, (TextView) btnSettings);
+ 
+         // Hide the glass when focus leaves the tiles.
+-        getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener((oldF, newF) -> {
+-            boolean onTile = newF != null && newF.getId() == R.id.card;
+-            if (!onTile) hideGlass();
+-        });
++        // Taken off in onDestroy: recreate() keeps the window, and a listener left on it held every earlier Home.
++        getWindow().getDecorView().getViewTreeObserver().addOnGlobalFocusChangeListener(glassFocusListener);
+ 
+         packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+         packageFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+         packageFilter.addAction(Intent.ACTION_PACKAGE_CHANGED);
+         packageFilter.addDataScheme("package");
+ 
+-        ConnectivityManager cm = getSystemService(ConnectivityManager.class);
++        // From the application, not this activity: on Android 12 a ConnectivityManager keeps the context it was
++        // made with (its static sInstance, and the callback Messenger the system holds), so every recreate() left
++        // the previous Home and its bitmaps behind.
++        ConnectivityManager cm = getApplicationContext().getSystemService(ConnectivityManager.class);
+         TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
+         if (tim != null) tim.registerCallback(inputCallback, handler);
+         if (cm != null) {
+@@ -724,11 +771,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+         }
+     }
+ 
++    /** Hides the glass when focus leaves the tiles (added in onCreate, removed in onDestroy). */
++    private final ViewTreeObserver.OnGlobalFocusChangeListener glassFocusListener = (oldF, newF) -> {
++        boolean onTile = newF != null && newF.getId() == R.id.card;
++        if (!onTile) hideGlass();
++    };
++
+     @Override
+     protected void onDestroy() {
+         super.onDestroy();
++        handler.removeCallbacks(sleepTicker);
++        if (btReceiverRegistered) {
++            try { unregisterReceiver(btReceiver); } catch (IllegalArgumentException ignored) {}
++            btReceiverRegistered = false;
++        }
++        ViewTreeObserver tree = getWindow().getDecorView().getViewTreeObserver();
++        if (tree.isAlive()) tree.removeOnGlobalFocusChangeListener(glassFocusListener);
+         wallpaperPlayer.close();
+-        ConnectivityManager cm = getSystemService(ConnectivityManager.class);
++        ConnectivityManager cm = getApplicationContext().getSystemService(ConnectivityManager.class);
+         TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
+         if (tim != null) tim.unregisterCallback(inputCallback);
+         if (cm != null) {
+@@ -1019,7 +1079,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+ 
+     @Override
+     public void onBackPressed() {
+-        // Home screen: Back goes nowhere.
++        launchAmbientModeOrPrompt();
+     }
+ 
+     // ---- glass highlight -------------------------------------------------------------------------
+@@ -1669,15 +1729,29 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+         focusTile(Math.min(lastRow + lastFocused % COLUMNS, adapter.appCount() - 1));
+     }
+ 
++    @Override public void onFooterReorderRequested() {
++        toggleReorder();
++    }
++
++    @Override public void onFooterLauncherSettingsRequested() {
++        startActivityForResult(new Intent(this, LauncherSettingsActivity.class), LAUNCHER_SETTINGS_REQUEST);
++    }
++
++    private View primaryFooterButton(View itemView) {
++        View lib = itemView.findViewById(R.id.btnLibrary);
++        if (lib != null && lib.getVisibility() == View.VISIBLE) return lib;
++        return itemView.findViewById(R.id.btnFooterEdit);
++    }
++
+     private void focusLibrary() {
+         cancelPendingFocusScroll();
+         int position = adapter.appCount();
+         if (!adapter.isLibraryAt(position)) return;
+         RecyclerView.ViewHolder holder = grid.findViewHolderForAdapterPosition(position);
+         if (holder != null) {
+-            View button = holder.itemView.findViewById(R.id.btnLibrary);
++            View button = primaryFooterButton(holder.itemView);
+             Rect visible = new Rect();
+-            if (button.getGlobalVisibleRect(visible) && visible.height() >= button.getHeight()) {
++            if (button != null && button.getGlobalVisibleRect(visible) && visible.height() >= button.getHeight()) {
+                 if (button.requestFocus()) libraryFocusPending = false;
+                 return;
+             }
+@@ -1687,8 +1761,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+             grid.post(() -> {
+                 if (appLibrary != null || !hasWindowFocus()) return;
+                 RecyclerView.ViewHolder footer = grid.findViewHolderForAdapterPosition(adapter.appCount());
++                View button = footer != null ? primaryFooterButton(footer.itemView) : null;
+                 if (footer != null && adapter.isLibraryAt(adapter.appCount())
+-                        && footer.itemView.findViewById(R.id.btnLibrary).requestFocus()) libraryFocusPending = false;
++                        && button != null && button.requestFocus()) libraryFocusPending = false;
+             });
+             return;
+         }
+@@ -1699,7 +1774,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+                 if (pendingFocusScroll != this) return;
+                 pendingFocusScroll = null;
+                 RecyclerView.ViewHolder footer = rv.findViewHolderForAdapterPosition(position);
+-                if (footer != null && footer.itemView.findViewById(R.id.btnLibrary).requestFocus())
++                View button = footer != null ? primaryFooterButton(footer.itemView) : null;
++                if (footer != null && button != null && button.requestFocus())
+                     libraryFocusPending = false;
+             }
+         };
+@@ -1843,7 +1919,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+         int flame = 0;
+         boolean steady = false;
+         try {
+-            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
++            ConnectivityManager cm = getApplicationContext().getSystemService(ConnectivityManager.class);
+             boolean wifi = false, ethernet = false;
+             // All networks, not just the active one: with a VPN up the active network is the VPN itself.
+             for (Network net : cm != null ? cm.getAllNetworks() : new Network[0]) {
+@@ -1968,6 +2044,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          open(i != null ? i : systemIntent(Settings.ACTION_WIFI_SETTINGS));
      }
  
@@ -631,7 +921,7 @@ index c38133ee..4acb6210 100644
  
      /**
       * China-market MIUI TV firmware answers no standard Settings intents at all; open Xiaomi's own
-@@ -2001,11 +2046,22 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2001,11 +2103,22 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
  
      /** The Live TV app's launch intent: its leanback entry point, or the configured action if it has none. */
      private Intent liveTvIntent() {
@@ -659,11 +949,854 @@ index c38133ee..4acb6210 100644
      }
  
      /** The TV's own source-selection panel, for TVs that have no TvInputManager (TCL Android TV 9): a
+@@ -2472,4 +2585,658 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+                 return getString(R.string.card_state_new);
+         }
+     }
++
++    // ---- Ambient Mode on Back --------------------------------------------------------------------
++
++    private static final String DREAMX_PKG = "com.google.android.apps.tv.dreamx";
++    private static final String DREAMX_COMPONENT = "com.google.android.apps.tv.dreamx/com.google.android.apps.tv.dreamx.service.Backdrop";
++
++    private void launchAmbientModeOrPrompt() {
++        boolean dreamxEnabled = false;
++        try {
++            int state = getPackageManager().getApplicationEnabledSetting(DREAMX_PKG);
++            dreamxEnabled = state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
++                    || state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
++        } catch (IllegalArgumentException ignored) {
++            dreamxEnabled = false;
++        }
++        int ssEnabled = Settings.Secure.getInt(getContentResolver(), "screensaver_enabled", 1);
++        String ssComp = Settings.Secure.getString(getContentResolver(), "screensaver_components");
++        boolean hasAmbient = dreamxEnabled && ssEnabled == 1
++                && (ssComp == null || ssComp.isEmpty() || ssComp.contains(DREAMX_PKG)
++                || ssComp.contains("deskclock"));
++        if (hasAmbient) {
++            if (startSystemScreensaver()) return;
++        }
++        showEnableAmbientPrompt(dreamxEnabled);
++    }
++
++    private boolean startSystemScreensaver() {
++        try {
++            Intent intent = new Intent(Intent.ACTION_MAIN);
++            intent.setComponent(new ComponentName("com.android.systemui", "com.android.systemui.Somnambulator"));
++            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
++            startActivity(intent);
++            return true;
++        } catch (ActivityNotFoundException | SecurityException e) {
++            return false;
++        }
++    }
++
++    private void showEnableAmbientPrompt(boolean dreamxInstalled) {
++        new AlertDialog.Builder(this)
++                .setTitle(R.string.ambient_prompt_title)
++                .setMessage(R.string.ambient_prompt_body)
++                .setPositiveButton(R.string.ambient_enable, (d, w) -> {
++                    boolean wrote = false;
++                    try {
++                        Settings.Secure.putInt(getContentResolver(), "screensaver_enabled", 1);
++                        if (dreamxInstalled) {
++                            Settings.Secure.putString(getContentResolver(), "screensaver_components", DREAMX_COMPONENT);
++                        }
++                        wrote = true;
++                    } catch (SecurityException ignored) {
++                        wrote = false;
++                    }
++                    if (wrote && startSystemScreensaver()) return;
++                    open(systemIntent(Settings.ACTION_DREAM_SETTINGS));
++                })
++                .setNegativeButton(R.string.ambient_not_now, null)
++                .show();
++    }
++
++    // ---- Sleep Timer -----------------------------------------------------------------------------
++
++    private final Runnable sleepTicker = new Runnable() {
++        @Override
++        public void run() {
++            if (sleepRemainingSec <= 0) return;
++            sleepRemainingSec--;
++            updateTimerButton();
++            if (sleepRemainingSec <= 0) {
++                triggerSleepAction();
++            } else {
++                handler.postDelayed(this, 1000L);
++            }
++        }
++    };
++
++    private void transitionPopover(PopupWindow popup, View panel, LinearLayout rows, int minWidthDp) {
++        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && panel instanceof ViewGroup) {
++            android.transition.AutoTransition tr = new android.transition.AutoTransition();
++            tr.setDuration(180);
++            android.transition.TransitionManager.beginDelayedTransition((ViewGroup) panel, tr);
++        }
++        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
++        int w = Math.max((int) (minWidthDp * density), panel.getMeasuredWidth());
++        popup.update(w, ViewGroup.LayoutParams.WRAP_CONTENT);
++        for (int i = 0; i < rows.getChildCount(); i++) {
++            View child = rows.getChildAt(i);
++            if (child.isFocusable()) {
++                child.requestFocus();
++                break;
++            }
++        }
++    }
++
++    private void showSleepTimerMenu() {
++        View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
++        LinearLayout rows = panel.findViewById(R.id.rows);
++        PopupWindow popup = glassPopup(panel, (int) (190 * density));
++        renderTimerPresets(popup, panel, rows, false);
++        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
++        popup.setWidth(Math.max((int) (190 * density), panel.getMeasuredWidth()));
++        dropIn(popup, panel, btnTimer, getResources().getBoolean(R.bool.rtl_menu_bar)
++                ? Gravity.START : Gravity.END);
++        if (rows.getChildCount() > 0) rows.getChildAt(0).requestFocus();
++    }
++
++    private void renderTimerPresets(PopupWindow popup, View panel, LinearLayout rows, boolean animate) {
++        rows.removeAllViews();
++        if (sleepRemainingSec > 0) {
++            addTimerRow(rows, popup, getString(R.string.timer_cancel), this::cancelSleepTimer);
++        } else {
++            for (int mins : new int[]{15, 30, 45, 60, 90, 120}) {
++                addTimerRow(rows, popup, getString(R.string.timer_min_fmt, mins), () -> startSleepTimer(mins));
++            }
++            addTimerRow(rows, null, getString(R.string.timer_custom),
++                    () -> renderTimerCustom(popup, panel, rows));
++        }
++        if (animate) transitionPopover(popup, panel, rows, 190);
++    }
++
++    private void renderTimerCustom(PopupWindow popup, View panel, LinearLayout rows) {
++        rows.removeAllViews();
++        final int[] minutes = {30};
++
++        LinearLayout stepper = new LinearLayout(this);
++        stepper.setOrientation(LinearLayout.HORIZONTAL);
++        stepper.setGravity(Gravity.CENTER);
++        int padH = (int) (8 * density);
++        int padV = (int) (6 * density);
++        stepper.setPadding(padH, padV, padH, padV);
++
++        TextView minus = new TextView(this);
++        minus.setText("-5");
++        minus.setTextSize(15f);
++        minus.setGravity(Gravity.CENTER);
++        minus.setTextColor(getResources().getColorStateList(R.drawable.pill_text, getTheme()));
++        minus.setBackgroundResource(R.drawable.input_row_bg);
++        minus.setFocusable(true);
++        minus.setClickable(true);
++        minus.setLayoutParams(new LinearLayout.LayoutParams((int) (54 * density), (int) (38 * density)));
++
++        TextView value = new TextView(this);
++        value.setText(getString(R.string.timer_min_fmt, minutes[0]));
++        value.setTextSize(17f);
++        value.setGravity(Gravity.CENTER);
++        value.setTextColor(0xFFFFFFFF);
++        LinearLayout.LayoutParams valLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
++        value.setLayoutParams(valLp);
++
++        TextView plus = new TextView(this);
++        plus.setText("+5");
++        plus.setTextSize(15f);
++        plus.setGravity(Gravity.CENTER);
++        plus.setTextColor(getResources().getColorStateList(R.drawable.pill_text, getTheme()));
++        plus.setBackgroundResource(R.drawable.input_row_bg);
++        plus.setFocusable(true);
++        plus.setClickable(true);
++        plus.setLayoutParams(new LinearLayout.LayoutParams((int) (54 * density), (int) (38 * density)));
++
++        minus.setOnClickListener(v -> {
++            minutes[0] = Math.max(5, minutes[0] - 5);
++            value.setText(getString(R.string.timer_min_fmt, minutes[0]));
++        });
++        plus.setOnClickListener(v -> {
++            minutes[0] = Math.min(360, minutes[0] + 5);
++            value.setText(getString(R.string.timer_min_fmt, minutes[0]));
++        });
++
++        stepper.addView(minus);
++        stepper.addView(value);
++        stepper.addView(plus);
++        rows.addView(stepper);
++
++        addTimerRow(rows, popup, getString(R.string.timer_start), () -> startSleepTimer(minutes[0]));
++        addTimerRow(rows, null, getString(R.string.action_back),
++                () -> renderTimerPresets(popup, panel, rows, true));
++
++        transitionPopover(popup, panel, rows, 248);
++        plus.requestFocus();
++    }
++
++    private void addTimerRow(LinearLayout rows, PopupWindow popup, String label, Runnable action) {
++        View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
++        row.findViewById(R.id.icon).setVisibility(View.GONE);
++        row.findViewById(R.id.dot).setVisibility(View.GONE);
++        row.findViewById(R.id.status).setVisibility(View.GONE);
++        ((TextView) row.findViewById(R.id.title)).setText(label);
++        row.setOnClickListener(v -> {
++            if (popup != null) popup.dismiss();
++            action.run();
++        });
++        rows.addView(row);
++    }
++
++    private void startSleepTimer(int minutes) {
++        handler.removeCallbacks(sleepTicker);
++        sleepRemainingSec = minutes * 60;
++        updateTimerButton();
++        handler.postDelayed(sleepTicker, 1000L);
++    }
++
++    private void cancelSleepTimer() {
++        handler.removeCallbacks(sleepTicker);
++        sleepRemainingSec = 0;
++        updateTimerButton();
++    }
++
++    private void setTopPillCompact(TextView pill, boolean compact) {
++        ViewGroup.LayoutParams lp = pill.getLayoutParams();
++        if (lp == null) return;
++        int targetW = compact ? (int) (42 * density) : ViewGroup.LayoutParams.WRAP_CONTENT;
++        if (lp.width != targetW) {
++            lp.width = targetW;
++            pill.setLayoutParams(lp);
++        }
++    }
++
++    private void updateTimerButton() {
++        if (btnTimer == null) return;
++        int padV = (int) (7 * density);
++        if (sleepRemainingSec > 0) {
++            int mins = sleepRemainingSec / 60;
++            int secs = sleepRemainingSec % 60;
++            setTopPillCompact(btnTimer, false);
++            btnTimer.setText(String.format(Locale.US, "%d:%02d", mins, secs));
++            btnTimer.setCompoundDrawablePadding((int) (8 * density));
++            btnTimer.setPadding((int) (14 * density), padV, (int) (14 * density), padV);
++        } else {
++            setTopPillCompact(btnTimer, true);
++            btnTimer.setText("");
++            btnTimer.setCompoundDrawablePadding(0);
++            btnTimer.setPadding((int) (10 * density), padV, (int) (10 * density), padV);
++        }
++    }
++
++    private void triggerSleepAction() {
++        cancelSleepTimer();
++        try {
++            AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
++            if (am != null) {
++                am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
++            }
++        } catch (Exception ignored) {}
++        if (!startSystemScreensaver()) {
++            finish();
++        }
++    }
++
++    // ---- Smart Bluetooth pill --------------------------------------------------------------------
++
++    private final BroadcastReceiver btReceiver = new BroadcastReceiver() {
++        @Override
++        public void onReceive(Context context, Intent intent) {
++            String action = intent.getAction();
++            if ("android.bluetooth.device.action.BATTERY_LEVEL_CHANGED".equals(action)) {
++                BluetoothDevice dev = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
++                int level = intent.getIntExtra("android.bluetooth.device.extra.BATTERY_LEVEL", -1);
++                if (dev != null && dev.getAddress() != null && level >= 0) {
++                    btBatteryByAddr.put(dev.getAddress(), level);
++                }
++            }
++            updateBluetoothButton();
++        }
++    };
++
++    private boolean isIgnoredTvOrRemoteDevice(BluetoothDevice dev, String adapterName) {
++        String name = dev.getName();
++        if (name == null || name.trim().isEmpty()) return true;
++        if (adapterName != null && name.equalsIgnoreCase(adapterName)) return true;
++        String lower = name.toLowerCase(Locale.ROOT);
++        if (lower.endsWith(" rc") || lower.contains("remote") || lower.contains("tv remote")) {
++            return true;
++        }
++        try {
++            android.bluetooth.BluetoothClass bc = dev.getBluetoothClass();
++            if (bc != null) {
++                int major = bc.getMajorDeviceClass();
++                int devClass = bc.getDeviceClass();
++                // Ignore HID remotes/keyboards/mice unless it's a gamepad/joystick.
++                if (major == android.bluetooth.BluetoothClass.Device.Major.PERIPHERAL
++                        && devClass != 0x0508 && devClass != 0x0504) {
++                    return true;
++                }
++            }
++        } catch (SecurityException ignored) {}
++        return false;
++    }
++
++    private void updateBluetoothButton() {
++        // Keep the Bluetooth pill as a compact 42dp icon circle; devices and battery live in its popover.
++        if (btnBluetooth == null) return;
++        setTopPillCompact(btnBluetooth, true);
++        btnBluetooth.setText("");
++        btnBluetooth.setCompoundDrawablePadding(0);
++        int padV = (int) (7 * density);
++        btnBluetooth.setPadding((int) (10 * density), padV, (int) (10 * density), padV);
++    }
++
++    private void addMenuRow(LinearLayout rows, PopupWindow popup, String title, String status,
++                            boolean active, boolean locked, int iconRes, Runnable action) {
++        View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
++        android.widget.ImageView icon = row.findViewById(R.id.icon);
++        if (iconRes != 0) {
++            icon.setImageResource(iconRes);
++            icon.setVisibility(View.VISIBLE);
++        } else {
++            icon.setVisibility(View.GONE);
++        }
++        row.findViewById(R.id.dot).setVisibility(active ? View.VISIBLE : View.GONE);
++        View lockView = row.findViewById(R.id.lockIcon);
++        if (lockView != null) lockView.setVisibility(locked ? View.VISIBLE : View.GONE);
++        TextView statusView = row.findViewById(R.id.status);
++        if (status != null && !status.isEmpty()) {
++            statusView.setText(status);
++            statusView.setVisibility(View.VISIBLE);
++        } else {
++            statusView.setVisibility(View.GONE);
++        }
++        ((TextView) row.findViewById(R.id.title)).setText(title);
++        if (action != null) {
++            row.setOnClickListener(v -> {
++                if (popup != null) popup.dismiss();
++                action.run();
++            });
++        } else {
++            row.setFocusable(false);
++            row.setClickable(false);
++        }
++        rows.addView(row);
++    }
++
++    private void showWifiMenu() {
++        View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
++        LinearLayout rows = panel.findViewById(R.id.rows);
++        PopupWindow popup = glassPopup(panel, (int) (248 * density));
++        renderWifiList(popup, panel, rows, false);
++        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
++        popup.setWidth(Math.max((int) (248 * density), panel.getMeasuredWidth()));
++        dropIn(popup, panel, btnWifi, getResources().getBoolean(R.bool.rtl_menu_bar)
++                ? Gravity.START : Gravity.END);
++        if (rows.getChildCount() > 0) rows.getChildAt(0).requestFocus();
++    }
++
++    @SuppressWarnings("deprecation")
++    private void renderWifiList(PopupWindow popup, View panel, LinearLayout rows, boolean animate) {
++        rows.removeAllViews();
++        if (!vpnApp.isEmpty()) {
++            Intent vpnIntent = getPackageManager().getLeanbackLaunchIntentForPackage(vpnApp);
++            if (vpnIntent == null) vpnIntent = getPackageManager().getLaunchIntentForPackage(vpnApp);
++            if (vpnIntent != null) {
++                Intent launchVpn = vpnIntent;
++                addMenuRow(rows, popup, "VPN", null, false, false, R.drawable.ic_wifi, () -> open(launchVpn));
++            }
++        }
++
++        WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
++        if (wm != null && wm.isWifiEnabled()) {
++            try { wm.startScan(); } catch (Exception ignored) {}
++            WifiInfo info = null;
++            String currentSsid = null;
++            try {
++                info = wm.getConnectionInfo();
++                if (info != null && info.getSSID() != null) {
++                    String s = info.getSSID().replace("\"", "");
++                    if (!s.isEmpty() && !"<unknown ssid>".equalsIgnoreCase(s)) currentSsid = s;
++                }
++            } catch (SecurityException ignored) {}
++
++            java.util.LinkedHashMap<String, Integer> savedBySsid = new java.util.LinkedHashMap<>();
++            try {
++                List<WifiConfiguration> configured = wm.getConfiguredNetworks();
++                if (configured != null) {
++                    for (WifiConfiguration wc : configured) {
++                        if (wc.SSID == null) continue;
++                        String s = wc.SSID.replace("\"", "").trim();
++                        if (!s.isEmpty() && !savedBySsid.containsKey(s)) {
++                            savedBySsid.put(s, wc.networkId);
++                        }
++                    }
++                }
++            } catch (SecurityException ignored) {}
++
++            java.util.LinkedHashSet<String> shown = new java.util.LinkedHashSet<>();
++            if (currentSsid != null) {
++                shown.add(currentSsid);
++                String activeSsid = currentSsid;
++                WifiInfo activeInfo = info;
++                Integer activeNetId = savedBySsid.get(activeSsid);
++                addMenuRow(rows, null, activeSsid, null, true, false, R.drawable.ic_wifi,
++                        () -> renderWifiDetails(popup, panel, rows, wm, activeSsid, activeNetId, true, activeInfo));
++            }
++            for (java.util.Map.Entry<String, Integer> entry : savedBySsid.entrySet()) {
++                String ssid = entry.getKey();
++                if (shown.contains(ssid)) continue;
++                shown.add(ssid);
++                int netId = entry.getValue();
++                addMenuRow(rows, null, ssid, null, false, false, R.drawable.ic_wifi,
++                        () -> renderWifiDetails(popup, panel, rows, wm, ssid, netId, false, null));
++            }
++            try {
++                List<ScanResult> scans = wm.getScanResults();
++                if (scans != null) {
++                    int extra = 0;
++                    for (ScanResult sr : scans) {
++                        if (sr.SSID == null) continue;
++                        String s = sr.SSID.trim();
++                        if (s.isEmpty() || shown.contains(s)) continue;
++                        shown.add(s);
++                        String caps = sr.capabilities != null ? sr.capabilities.toUpperCase(Locale.ROOT) : "";
++                        boolean secured = caps.contains("WPA") || caps.contains("PSK")
++                                || caps.contains("SAE") || caps.contains("WEP") || caps.contains("EAP");
++                        addMenuRow(rows, popup, s, null, false, secured, R.drawable.ic_wifi, () -> {
++                            if (secured) {
++                                showWifiPasswordDialog(wm, s, caps);
++                            } else {
++                                connectToWifi(wm, s, null, caps);
++                            }
++                        });
++                        if (++extra >= 6) break;
++                    }
++                }
++            } catch (SecurityException ignored) {}
++        } else {
++            addMenuRow(rows, popup, getString(R.string.wifi_off), null, false, false, 0, null);
++        }
++
++        addMenuRow(rows, popup, getString(R.string.wifi_system_settings), null, false, false,
++                R.drawable.ic_settings, () -> open(systemIntent(Settings.ACTION_WIFI_SETTINGS)));
++
++        if (animate) transitionPopover(popup, panel, rows, 248);
++    }
++
++    @SuppressWarnings("deprecation")
++    private void renderWifiDetails(PopupWindow popup, View panel, LinearLayout rows, WifiManager wm,
++                                   String ssid, Integer netId, boolean isConnected, WifiInfo info) {
++        rows.removeAllViews();
++        addMenuRow(rows, null, ssid, null, isConnected, false, R.drawable.ic_wifi, null);
++        if (isConnected && info != null) {
++            int pct = WifiManager.calculateSignalLevel(info.getRssi(), 101);
++            int speed = Math.max(0, info.getLinkSpeed());
++            String band = info.getFrequency() >= 4900 ? "5 GHz" : "2.4 GHz";
++            addMenuRow(rows, null, getString(R.string.wifi_status_fmt, pct, speed, band),
++                    null, false, false, 0, null);
++            int ipInt = info.getIpAddress();
++            if (ipInt != 0) {
++                String ipStr = android.text.format.Formatter.formatIpAddress(ipInt);
++                addMenuRow(rows, null, "IP: " + ipStr, null, false, false, 0, null);
++            }
++            addMenuRow(rows, popup, getString(R.string.action_disconnect), null, false, false, 0, () -> {
++                try {
++                    wm.disconnect();
++                    Toast.makeText(this, getString(R.string.wifi_disconnected, ssid), Toast.LENGTH_SHORT).show();
++                } catch (Exception e) {
++                    open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
++                }
++            });
++        } else if (netId != null) {
++            addMenuRow(rows, popup, getString(R.string.action_connect), null, false, false, 0, () -> {
++                try {
++                    wm.enableNetwork(netId, true);
++                    wm.reconnect();
++                    Toast.makeText(this, getString(R.string.wifi_connecting, ssid), Toast.LENGTH_SHORT).show();
++                } catch (Exception e) {
++                    open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
++                }
++            });
++            addMenuRow(rows, popup, getString(R.string.wifi_forget), null, false, false, 0, () -> {
++                try {
++                    if (wm.removeNetwork(netId)) {
++                        wm.saveConfiguration();
++                        Toast.makeText(this, getString(R.string.wifi_forgot, ssid), Toast.LENGTH_SHORT).show();
++                        return;
++                    }
++                } catch (Exception ignored) {}
++                open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
++            });
++        }
++        addMenuRow(rows, null, getString(R.string.action_back), null, false, false, 0,
++                () -> renderWifiList(popup, panel, rows, true));
++        transitionPopover(popup, panel, rows, 260);
++    }
++
++    private void showWifiPasswordDialog(WifiManager wm, String ssid, String capabilities) {
++        android.widget.EditText input = new android.widget.EditText(this);
++        input.setHint(R.string.wifi_password_hint);
++        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT
++                | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
++        input.setSingleLine(true);
++        int pad = (int) (20 * density);
++        android.widget.FrameLayout container = new android.widget.FrameLayout(this);
++        container.setPadding(pad, pad / 2, pad, 0);
++        container.addView(input);
++
++        new AlertDialog.Builder(this)
++                .setTitle(ssid)
++                .setView(container)
++                .setPositiveButton(R.string.wifi_connect, (d, w) -> {
++                    String pass = input.getText().toString();
++                    connectToWifi(wm, ssid, pass, capabilities);
++                })
++                .setNegativeButton(R.string.ambient_not_now, null)
++                .show();
++    }
++
++    @SuppressWarnings("deprecation")
++    private void connectToWifi(WifiManager wm, String ssid, String password, String capabilities) {
++        try {
++            WifiConfiguration wc = new WifiConfiguration();
++            wc.SSID = "\"" + ssid + "\"";
++            if (password == null || password.isEmpty()) {
++                wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
++            } else if (capabilities != null && capabilities.contains("WEP")) {
++                wc.wepKeys[0] = "\"" + password + "\"";
++                wc.wepTxKeyIndex = 0;
++                wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
++                wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
++            } else {
++                wc.preSharedKey = "\"" + password + "\"";
++            }
++            int netId = wm.addNetwork(wc);
++            if (netId != -1 && wm.enableNetwork(netId, true)) {
++                wm.reconnect();
++                Toast.makeText(this, getString(R.string.wifi_connecting, ssid), Toast.LENGTH_SHORT).show();
++                return;
++            }
++        } catch (Exception ignored) {}
++
++        Toast.makeText(this, R.string.wifi_failed, Toast.LENGTH_SHORT).show();
++        open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
++    }
++
++    private void showBluetoothMenu() {
++        View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
++        LinearLayout rows = panel.findViewById(R.id.rows);
++        PopupWindow popup = glassPopup(panel, (int) (248 * density));
++        renderBluetoothList(popup, panel, rows, false);
++        panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
++        popup.setWidth(Math.max((int) (248 * density), panel.getMeasuredWidth()));
++        dropIn(popup, panel, btnBluetooth, getResources().getBoolean(R.bool.rtl_menu_bar)
++                ? Gravity.START : Gravity.END);
++        if (rows.getChildCount() > 0) rows.getChildAt(0).requestFocus();
++    }
++
++    private void renderBluetoothList(PopupWindow popup, View panel, LinearLayout rows, boolean animate) {
++        rows.removeAllViews();
++        try {
++            BluetoothManager bm = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
++            BluetoothAdapter adapterBt = bm != null ? bm.getAdapter() : BluetoothAdapter.getDefaultAdapter();
++            if (adapterBt == null || !adapterBt.isEnabled()) {
++                addMenuRow(rows, popup, getString(R.string.bt_off), null, false, false, 0, null);
++            } else {
++                String adapterName = adapterBt.getName();
++                Set<BluetoothDevice> bonded = adapterBt.getBondedDevices();
++                List<BluetoothDevice> devices = new ArrayList<>();
++                if (bonded != null) {
++                    for (BluetoothDevice dev : bonded) {
++                        if (!isIgnoredTvOrRemoteDevice(dev, adapterName)) {
++                            devices.add(dev);
++                        }
++                    }
++                }
++                devices.sort((a, b) -> Boolean.compare(isBluetoothDeviceConnected(b), isBluetoothDeviceConnected(a)));
++                if (devices.isEmpty()) {
++                    addMenuRow(rows, popup, getString(R.string.bt_none), null, false, false, 0, null);
++                } else {
++                    for (BluetoothDevice dev : devices) {
++                        String name = dev.getName();
++                        boolean connected = isBluetoothDeviceConnected(dev);
++                        int battery = readBluetoothBattery(dev);
++                        String status = battery >= 0 ? (battery + "%") : null;
++                        addMenuRow(rows, null, name, status, connected, false, R.drawable.ic_bluetooth,
++                                () -> renderBluetoothDetails(popup, panel, rows, dev, name, connected, battery));
++                    }
++                }
++            }
++        } catch (SecurityException e) {
++            addMenuRow(rows, popup, getString(R.string.bt_none), null, false, false, 0, null);
++        }
++
++        addMenuRow(rows, popup, getString(R.string.bt_system_settings), null, false, false,
++                R.drawable.ic_settings, this::openBluetoothSettings);
++
++        if (animate) transitionPopover(popup, panel, rows, 248);
++    }
++
++    private void renderBluetoothDetails(PopupWindow popup, View panel, LinearLayout rows,
++                                        BluetoothDevice dev, String name, boolean connected, int battery) {
++        rows.removeAllViews();
++        String status = battery >= 0 ? (battery + "%") : null;
++        addMenuRow(rows, null, name, status, connected, false, R.drawable.ic_bluetooth, null);
++        addMenuRow(rows, popup, getString(connected ? R.string.action_disconnect : R.string.action_connect),
++                null, false, false, 0, () -> toggleBluetoothDeviceConnection(dev, name, connected));
++        addMenuRow(rows, popup, getString(R.string.bt_unpair), null, false, false, 0, () -> {
++            try {
++                dev.getClass().getMethod("removeBond").invoke(dev);
++                Toast.makeText(this, getString(R.string.bt_unpaired, name), Toast.LENGTH_SHORT).show();
++            } catch (Exception e) {
++                openBluetoothSettings();
++            }
++        });
++        addMenuRow(rows, null, getString(R.string.action_back), null, false, false, 0,
++                () -> renderBluetoothList(popup, panel, rows, true));
++        transitionPopover(popup, panel, rows, 248);
++    }
++
++    private void toggleBluetoothDeviceConnection(BluetoothDevice dev, String name, boolean currentlyConnected) {
++        Toast.makeText(this, getString(currentlyConnected ? R.string.bt_disconnecting : R.string.bt_connecting, name),
++                Toast.LENGTH_SHORT).show();
++        String methodName = currentlyConnected ? "disconnect" : "connect";
++        try {
++            dev.getClass().getMethod(methodName).invoke(dev);
++        } catch (Exception ignored) {}
++
++        BluetoothManager bm = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
++        BluetoothAdapter adapterBt = bm != null ? bm.getAdapter() : BluetoothAdapter.getDefaultAdapter();
++        if (adapterBt == null) return;
++        for (int profile : new int[]{BluetoothProfile.A2DP, BluetoothProfile.HEADSET}) {
++            try {
++                adapterBt.getProfileProxy(this, new BluetoothProfile.ServiceListener() {
++                    @Override
++                    public void onServiceConnected(int p, BluetoothProfile proxy) {
++                        try {
++                            proxy.getClass().getMethod(methodName, BluetoothDevice.class).invoke(proxy, dev);
++                        } catch (Exception ignored) {
++                        } finally {
++                            adapterBt.closeProfileProxy(p, proxy);
++                        }
++                    }
++
++                    @Override
++                    public void onServiceDisconnected(int p) {}
++                }, profile);
++            } catch (Exception ignored) {}
++        }
++    }
++
++    private boolean isBluetoothDeviceConnected(BluetoothDevice dev) {
++        try {
++            Object res = dev.getClass().getMethod("isConnected").invoke(dev);
++            return res instanceof Boolean && (Boolean) res;
++        } catch (Exception e) {
++            return false;
++        }
++    }
++
++    private int readBluetoothBattery(BluetoothDevice dev) {
++        Integer cached = dev.getAddress() != null ? btBatteryByAddr.get(dev.getAddress()) : null;
++        if (cached != null && cached >= 0) return cached;
++        try {
++            Object res = dev.getClass().getMethod("getBatteryLevel").invoke(dev);
++            if (res instanceof Integer && (Integer) res >= 0) return (Integer) res;
++        } catch (Exception ignored) {}
++        return -1;
++    }
+ }
+diff --git a/launcher/app/src/main/res/drawable/ic_lock.xml b/launcher/app/src/main/res/drawable/ic_lock.xml
+index f8c7452b..61d52fc6 100644
+--- a/launcher/app/src/main/res/drawable/ic_lock.xml
++++ b/launcher/app/src/main/res/drawable/ic_lock.xml
+@@ -1,7 +1,9 @@
+-<?xml version="1.0" encoding="utf-8"?>
+ <vector xmlns:android="http://schemas.android.com/apk/res/android"
+-    android:width="24dp" android:height="24dp"
+-    android:viewportWidth="24" android:viewportHeight="24">
+-    <path android:fillColor="#FFFFFFFF"
+-        android:pathData="M18,8h-1V6c0,-2.76 -2.24,-5 -5,-5S7,3.24 7,6v2H6c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2V10C20,8.9 19.1,8 18,8zM12,17c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2 2,0.9 2,2 -0.9,2 -2,2zM15.1,8H8.9V6c0,-1.71 1.39,-3.1 3.1,-3.1s3.1,1.39 3.1,3.1V8z" />
++    android:width="24dp"
++    android:height="24dp"
++    android:viewportWidth="24"
++    android:viewportHeight="24">
++    <path
++        android:fillColor="#FFFFFFFF"
++        android:pathData="M18,8h-1V6c0,-2.76 -2.24,-5 -5,-5S7,3.24 7,6v2H6c-1.1,0 -2,0.9 -2,2v10c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2V10c0,-1.1 -0.9,-2 -2,-2zM12,17c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2 2,0.9 2,2 -0.9,2 -2,2zM15.1,8H8.9V6c0,-1.71 1.39,-3.1 3.1,-3.1s3.1,1.39 3.1,3.1v2z" />
+ </vector>
 diff --git a/launcher/app/src/main/res/layout-iw/activity_main.xml b/launcher/app/src/main/res/layout-iw/activity_main.xml
-index e546dcec..47359c76 100644
+index e546dcec..1ac35274 100644
 --- a/launcher/app/src/main/res/layout-iw/activity_main.xml
 +++ b/launcher/app/src/main/res/layout-iw/activity_main.xml
-@@ -312,8 +312,8 @@
+@@ -176,14 +176,59 @@
+                 android:layout_alignParentEnd="true"
+                 android:layout_toEndOf="@+id/topButtons"
+                 android:layout_marginStart="16dp"
+-                android:orientation="horizontal"
+-                android:gravity="right|bottom">
++                android:orientation="vertical"
++                android:gravity="right">
++
++                <TextView
++                    android:id="@+id/greeting"
++                    android:gravity="right"
++                    android:layout_width="match_parent"
++                    android:layout_height="wrap_content"
++                    android:singleLine="true"
++                    android:ellipsize="end"
++                    android:textColor="#8CFFFFFF"
++                    android:textSize="12sp"
++                    android:fontFamily="@font/outfit_medium"
++                    android:letterSpacing="0.22"
++                    android:textAllCaps="true" />
+ 
+                 <LinearLayout
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+-                    android:layout_gravity="bottom"
+-                    android:layout_marginBottom="9dp"
++                    android:orientation="horizontal"
++                    android:baselineAligned="true">
++                    <TextClock
++                        android:id="@+id/clock"
++                        android:layout_width="wrap_content"
++                        android:layout_height="wrap_content"
++                        android:format12Hour="h:mm"
++                        android:format24Hour="HH:mm"
++                        android:textColor="#FFFFFFFF"
++                        android:textSize="72sp"
++                        android:fontFamily="@font/outfit_light"
++                        android:letterSpacing="-0.04"
++                        android:includeFontPadding="false" />
++
++                    <TextClock
++                        android:id="@+id/ampm"
++                        android:layout_width="wrap_content"
++                        android:layout_height="wrap_content"
++                        android:layout_marginStart="6dp"
++                        android:layout_gravity="bottom"
++                        android:layout_marginBottom="12dp"
++                        android:format12Hour="a"
++                        android:format24Hour=""
++                        android:textColor="#B3FFFFFF"
++                        android:textSize="20sp"
++                        android:fontFamily="@font/outfit_medium"
++                        android:letterSpacing="0.08"
++                        android:textAllCaps="true" />
++                </LinearLayout>
++
++                <LinearLayout
++                    android:layout_width="match_parent"
++                    android:layout_height="wrap_content"
++                    android:layout_marginTop="2dp"
+                     android:orientation="vertical">
+ 
+                     <!-- Shamsi date ("27 Mehr 1405"), shown when shamsi_date is on. -->
+@@ -195,7 +240,7 @@
+                         android:singleLine="true"
+                         android:ellipsize="end"
+                         android:textColor="#E6FFFFFF"
+-                        android:textSize="17sp"
++                        android:textSize="19sp"
+                         android:fontFamily="@font/outfit_regular"
+                         android:letterSpacing="0.02"
+                         android:includeFontPadding="false"
+@@ -204,79 +249,18 @@
+                     <TextClock
+                         android:id="@+id/date"
+                         android:gravity="right"
+-                        android:layout_width="wrap_content"
++                        android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+                         android:singleLine="true"
+                         android:ellipsize="end"
+                         android:format12Hour="@string/date_format"
+                         android:format24Hour="@string/date_format"
+                         android:textColor="#A6FFFFFF"
+-                        android:textSize="14sp"
++                        android:textSize="16sp"
+                         android:fontFamily="@font/outfit_regular"
+                         android:letterSpacing="0.14"
+                         android:textAllCaps="true" />
+                 </LinearLayout>
+-
+-                <View
+-                    android:layout_width="1dp"
+-                    android:layout_height="26dp"
+-                    android:layout_gravity="bottom"
+-                    android:layout_marginStart="16dp"
+-                    android:layout_marginEnd="16dp"
+-                    android:layout_marginBottom="8dp"
+-                    android:background="#33FFFFFF" />
+-
+-                <LinearLayout
+-                    android:layout_width="wrap_content"
+-                    android:layout_height="wrap_content"
+-                    android:orientation="vertical">
+-                    <TextView
+-                        android:id="@+id/greeting"
+-                        android:gravity="center_horizontal"
+-                        android:layout_width="match_parent"
+-                        android:layout_height="wrap_content"
+-                        android:singleLine="true"
+-                        android:ellipsize="end"
+-                        android:textColor="#8CFFFFFF"
+-                        android:textSize="12sp"
+-                        android:fontFamily="@font/outfit_medium"
+-                        android:letterSpacing="0.22"
+-                        android:textAllCaps="true" />
+-
+-                    <LinearLayout
+-                        android:layout_width="wrap_content"
+-                        android:layout_height="wrap_content"
+-                        android:orientation="horizontal"
+-                        android:baselineAligned="true">
+-                        <TextClock
+-                            android:id="@+id/clock"
+-                            android:layout_width="wrap_content"
+-                            android:layout_height="wrap_content"
+-                            android:format12Hour="h:mm"
+-                            android:format24Hour="HH:mm"
+-                            android:textColor="#FFFFFFFF"
+-                            android:textSize="52sp"
+-                            android:fontFamily="@font/outfit_light"
+-                            android:letterSpacing="-0.04"
+-                            android:includeFontPadding="false" />
+-
+-                        <TextClock
+-                            android:id="@+id/ampm"
+-                            android:layout_width="wrap_content"
+-                            android:layout_height="wrap_content"
+-                            android:layout_marginStart="6dp"
+-                            android:layout_gravity="bottom"
+-                            android:layout_marginBottom="8dp"
+-                            android:format12Hour="a"
+-                            android:format24Hour=""
+-                            android:textColor="#B3FFFFFF"
+-                            android:textSize="15sp"
+-                            android:fontFamily="@font/outfit_medium"
+-                            android:letterSpacing="0.08"
+-                            android:textAllCaps="true" />
+-                    </LinearLayout>
+-
+-                </LinearLayout>
+             </LinearLayout>
+ 
+             <!-- Shown only when show_stats is on. Outside leftBlock, so the top buttons stay level with the clock
+@@ -304,16 +288,16 @@
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_alignParentStart="true"
+-                android:layout_alignBottom="@id/leftBlock"
+-                android:layout_marginBottom="6dp"
++                android:layout_alignTop="@id/leftBlock"
++                android:layout_marginTop="4dp"
+                 android:clipChildren="false"
+                 android:clipToPadding="false"
+                 android:orientation="horizontal">
  
                  <TextView
                      android:id="@+id/btnSettings"
@@ -674,15 +1807,18 @@ index e546dcec..47359c76 100644
                      android:drawableStart="@drawable/ic_settings"
                      android:nextFocusDown="@+id/grid" />
  
-@@ -324,6 +324,20 @@
+@@ -324,6 +308,30 @@
                      android:drawableStart="@drawable/ic_swap_vert"
                      android:nextFocusDown="@+id/grid" />
  
 +                <TextView
-+                    android:id="@+id/btnBluetooth"
++                    android:id="@+id/btnTimer"
 +                    style="@style/TopButtonIcon"
-+                    android:contentDescription="@string/bluetooth"
-+                    android:drawableStart="@drawable/ic_bluetooth"
++                    android:layout_width="wrap_content"
++                    android:minWidth="42dp"
++                    android:singleLine="true"
++                    android:contentDescription="@string/sleep_timer"
++                    android:drawableStart="@drawable/ic_timer"
 +                    android:nextFocusDown="@+id/grid" />
 +
 +                <TextView
@@ -692,10 +1828,17 @@ index e546dcec..47359c76 100644
 +                    android:drawableStart="@drawable/ic_input"
 +                    android:nextFocusDown="@+id/grid" />
 +
++                <TextView
++                    android:id="@+id/btnBluetooth"
++                    style="@style/TopButtonIcon"
++                    android:contentDescription="@string/bluetooth"
++                    android:drawableStart="@drawable/ic_bluetooth"
++                    android:nextFocusDown="@+id/grid" />
++
                  <TextView
                      android:id="@+id/btnWifi"
                      style="@style/TopButton"
-@@ -333,13 +347,6 @@
+@@ -333,13 +341,6 @@
                      android:text="@string/wifi"
                      android:drawableStart="@drawable/ic_wifi"
                      android:nextFocusDown="@+id/grid" />
@@ -726,10 +1869,141 @@ index 2a598211..58338a65 100644
              android:id="@+id/animationsChoice"
              style="@style/SettingsRow"
 diff --git a/launcher/app/src/main/res/layout/activity_main.xml b/launcher/app/src/main/res/layout/activity_main.xml
-index b8895f0f..a10c7d94 100644
+index b8895f0f..2f702ff9 100644
 --- a/launcher/app/src/main/res/layout/activity_main.xml
 +++ b/launcher/app/src/main/res/layout/activity_main.xml
-@@ -306,13 +306,6 @@
+@@ -190,7 +190,7 @@
+                     android:textAllCaps="true" />
+ 
+                 <LinearLayout
+-                    android:layout_width="match_parent"
++                    android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:orientation="horizontal"
+                     android:baselineAligned="true">
+@@ -202,8 +202,9 @@
+                         android:format12Hour="h:mm"
+                         android:format24Hour="HH:mm"
+                         android:textColor="#FFFFFFFF"
+-                        android:textSize="52sp"
++                        android:textSize="72sp"
+                         android:fontFamily="@font/outfit_light"
++                        android:fontFeatureSettings="tnum"
+                         android:letterSpacing="-0.04"
+                         android:includeFontPadding="false" />
+ 
+@@ -213,64 +214,52 @@
+                         android:layout_height="wrap_content"
+                         android:layout_marginStart="6dp"
+                         android:layout_gravity="bottom"
+-                        android:layout_marginBottom="8dp"
++                        android:layout_marginBottom="12dp"
+                         android:format12Hour="a"
+                         android:format24Hour=""
+                         android:textColor="#B3FFFFFF"
+-                        android:textSize="15sp"
++                        android:textSize="20sp"
+                         android:fontFamily="@font/outfit_medium"
+                         android:letterSpacing="0.08"
+                         android:textAllCaps="true" />
++                </LinearLayout>
+ 
+-                    <View
+-                        android:layout_width="1dp"
+-                        android:layout_height="26dp"
+-                        android:layout_gravity="bottom"
+-                        android:layout_marginStart="16dp"
+-                        android:layout_marginEnd="16dp"
+-                        android:layout_marginBottom="8dp"
+-                        android:background="#33FFFFFF" />
+-
+-                    <LinearLayout
+-                        android:layout_width="0dp"
+-                        android:layout_weight="1"
++                <LinearLayout
++                    android:layout_width="match_parent"
++                    android:layout_height="wrap_content"
++                    android:layout_marginStart="4dp"
++                    android:layout_marginTop="2dp"
++                    android:orientation="vertical">
++
++                    <!-- Shamsi date ("27 Mehr 1405"), shown when shamsi_date is on. -->
++                    <TextView
++                        android:id="@+id/shamsiDate"
++                        android:gravity="left"
++                        android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+-                        android:layout_gravity="bottom"
+-                        android:layout_marginBottom="9dp"
+-                        android:orientation="vertical">
+-
+-                        <!-- Shamsi date ("27 Mehr 1405"), shown when shamsi_date is on. -->
+-                        <TextView
+-                            android:id="@+id/shamsiDate"
+-                            android:gravity="left"
+-                            android:layout_width="match_parent"
+-                            android:layout_height="wrap_content"
+-                            android:singleLine="true"
+-                            android:ellipsize="end"
+-                            android:textColor="#E6FFFFFF"
+-                            android:textSize="17sp"
+-                            android:fontFamily="@font/outfit_regular"
+-                            android:letterSpacing="0.02"
+-                            android:includeFontPadding="false"
+-                            android:visibility="gone" />
+-
+-                        <TextClock
+-                            android:id="@+id/date"
+-                            android:gravity="left"
+-                            android:layout_width="match_parent"
+-                            android:layout_height="wrap_content"
+-                            android:singleLine="@bool/date_single_line"
+-                            android:maxLines="2"
+-                            android:lineSpacingExtra="6dp"
+-                            android:ellipsize="end"
+-                            android:format12Hour="@string/date_format_home"
+-                            android:format24Hour="@string/date_format_home"
+-                            android:textColor="#A6FFFFFF"
+-                            android:textSize="14sp"
+-                            android:fontFamily="@font/outfit_regular"
+-                            android:letterSpacing="0.14"
+-                            android:textAllCaps="true" />
+-                    </LinearLayout>
++                        android:singleLine="true"
++                        android:ellipsize="end"
++                        android:textColor="#E6FFFFFF"
++                        android:textSize="19sp"
++                        android:fontFamily="@font/outfit_regular"
++                        android:letterSpacing="0.02"
++                        android:includeFontPadding="false"
++                        android:visibility="gone" />
++
++                    <TextClock
++                        android:id="@+id/date"
++                        android:gravity="left"
++                        android:layout_width="match_parent"
++                        android:layout_height="wrap_content"
++                        android:singleLine="true"
++                        android:ellipsize="end"
++                        android:format12Hour="@string/date_format_home"
++                        android:format24Hour="@string/date_format_home"
++                        android:textColor="#A6FFFFFF"
++                        android:textSize="16sp"
++                        android:fontFamily="@font/outfit_regular"
++                        android:letterSpacing="0.14"
++                        android:textAllCaps="true" />
+                 </LinearLayout>
+ 
+             </LinearLayout>
+@@ -300,19 +289,12 @@
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_alignParentEnd="true"
+-                android:layout_alignBottom="@id/leftBlock"
+-                android:layout_marginBottom="6dp"
++                android:layout_alignTop="@id/leftBlock"
++                android:layout_marginTop="4dp"
+                 android:clipChildren="false"
                  android:clipToPadding="false"
                  android:orientation="horizontal">
  
@@ -743,10 +2017,17 @@ index b8895f0f..a10c7d94 100644
                  <TextView
                      android:id="@+id/btnWifi"
                      style="@style/TopButton"
-@@ -323,6 +316,20 @@
+@@ -323,6 +305,30 @@
                      android:drawableStart="@drawable/ic_wifi"
                      android:nextFocusDown="@+id/grid" />
  
++                <TextView
++                    android:id="@+id/btnBluetooth"
++                    style="@style/TopButtonIcon"
++                    android:contentDescription="@string/bluetooth"
++                    android:drawableStart="@drawable/ic_bluetooth"
++                    android:nextFocusDown="@+id/grid" />
++
 +                <TextView
 +                    android:id="@+id/btnInputs"
 +                    style="@style/TopButtonIcon"
@@ -755,16 +2036,19 @@ index b8895f0f..a10c7d94 100644
 +                    android:nextFocusDown="@+id/grid" />
 +
 +                <TextView
-+                    android:id="@+id/btnBluetooth"
++                    android:id="@+id/btnTimer"
 +                    style="@style/TopButtonIcon"
-+                    android:contentDescription="@string/bluetooth"
-+                    android:drawableStart="@drawable/ic_bluetooth"
++                    android:layout_width="wrap_content"
++                    android:minWidth="42dp"
++                    android:singleLine="true"
++                    android:contentDescription="@string/sleep_timer"
++                    android:drawableStart="@drawable/ic_timer"
 +                    android:nextFocusDown="@+id/grid" />
 +
                  <TextView
                      android:id="@+id/btnReorder"
                      style="@style/TopButtonIcon"
-@@ -332,8 +339,8 @@
+@@ -332,8 +338,8 @@
  
                  <TextView
                      android:id="@+id/btnSettings"
@@ -775,19 +2059,167 @@ index b8895f0f..a10c7d94 100644
                      android:drawableStart="@drawable/ic_settings"
                      android:nextFocusDown="@+id/grid" />
              </LinearLayout>
+diff --git a/launcher/app/src/main/res/layout/item_input.xml b/launcher/app/src/main/res/layout/item_input.xml
+index 6dba0baf..398b59c0 100644
+--- a/launcher/app/src/main/res/layout/item_input.xml
++++ b/launcher/app/src/main/res/layout/item_input.xml
+@@ -29,7 +29,19 @@
+         android:duplicateParentState="true"
+         android:textSize="15sp"
+         android:fontFamily="@font/outfit_medium"
+-        android:singleLine="true" />
++        android:singleLine="true"
++        android:ellipsize="end" />
++
++    <ImageView
++        android:id="@+id/lockIcon"
++        android:layout_width="14dp"
++        android:layout_height="14dp"
++        android:layout_marginEnd="6dp"
++        android:src="@drawable/ic_lock"
++        android:tint="@drawable/pill_text_dim"
++        android:duplicateParentState="true"
++        android:visibility="gone"
++        android:contentDescription="@null" />
+ 
+     <View
+         android:id="@+id/dot"
+diff --git a/launcher/app/src/main/res/layout/row_app_library.xml b/launcher/app/src/main/res/layout/row_app_library.xml
+index 056c0780..8645eecf 100644
+--- a/launcher/app/src/main/res/layout/row_app_library.xml
++++ b/launcher/app/src/main/res/layout/row_app_library.xml
+@@ -1,7 +1,56 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+-    android:layout_width="match_parent" android:layout_height="84dp">
+-    <TextView android:id="@+id/btnLibrary" style="@style/TopButton"
+-        android:layout_gravity="center" android:text="@string/app_library"
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="68dp"
++    android:gravity="center"
++    android:orientation="horizontal"
++    android:clipChildren="false"
++    android:clipToPadding="false">
++
++    <TextView
++        android:id="@+id/btnLibrary"
++        style="@style/TopButton"
++        android:layout_marginEnd="14dp"
++        android:text="@string/app_library"
+         android:drawableStart="@drawable/ic_apps" />
+-</FrameLayout>
++
++    <TextView
++        android:id="@+id/btnFooterEdit"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_marginStart="12dp"
++        android:layout_marginEnd="12dp"
++        android:paddingStart="10dp"
++        android:paddingEnd="10dp"
++        android:paddingTop="8dp"
++        android:paddingBottom="8dp"
++        android:background="@null"
++        android:focusable="true"
++        android:clickable="true"
++        android:singleLine="true"
++        android:fontFamily="@font/outfit_regular"
++        android:textSize="13sp"
++        android:letterSpacing="0.03"
++        android:textColor="#80FFFFFF"
++        android:text="@string/reorder" />
++
++    <TextView
++        android:id="@+id/btnFooterLauncherSettings"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_marginStart="12dp"
++        android:layout_marginEnd="12dp"
++        android:paddingStart="10dp"
++        android:paddingEnd="10dp"
++        android:paddingTop="8dp"
++        android:paddingBottom="8dp"
++        android:background="@null"
++        android:focusable="true"
++        android:clickable="true"
++        android:singleLine="true"
++        android:fontFamily="@font/outfit_regular"
++        android:textSize="13sp"
++        android:letterSpacing="0.03"
++        android:textColor="#80FFFFFF"
++        android:text="@string/launcher_settings" />
++</LinearLayout>
+diff --git a/launcher/app/src/main/res/raw/keep.xml b/launcher/app/src/main/res/raw/keep.xml
+index f5ab6766..c8ec2c9b 100644
+--- a/launcher/app/src/main/res/raw/keep.xml
++++ b/launcher/app/src/main/res/raw/keep.xml
+@@ -1,4 +1,7 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<!-- app_banners names drawables at run time, which resource shrinking cannot see: keep every banner_*. -->
++<!-- app_banners names drawables at run time, which resource shrinking cannot see: keep every banner_*.
++     Strict: that is the launcher's only getIdentifier, and safe mode also keeps every resource whose name
++     matches a string literal anywhere in the code (AndroidX translations among them). -->
+ <resources xmlns:tools="http://schemas.android.com/tools"
+-    tools:keep="@drawable/banner_*" />
++    tools:keep="@drawable/banner_*"
++    tools:shrinkMode="strict" />
 diff --git a/launcher/app/src/main/res/values-es/strings.xml b/launcher/app/src/main/res/values-es/strings.xml
-index 2f7d3e2c..f11e54e4 100644
+index 2f7d3e2c..4e1f86c2 100644
 --- a/launcher/app/src/main/res/values-es/strings.xml
 +++ b/launcher/app/src/main/res/values-es/strings.xml
-@@ -3,6 +3,7 @@
+@@ -3,6 +3,41 @@
      <string name="app_name">Inicio</string>
      <string name="inputs">Entradas</string>
      <string name="wifi">Wi-Fi</string>
 +    <string name="bluetooth">Bluetooth</string>
++    <string name="sleep_timer">Temporizador</string>
++    <string name="timer_cancel">Cancelar temporizador</string>
++    <string name="timer_custom">Personalizado…</string>
++    <string name="timer_custom_title">Temporizador (minutos)</string>
++    <string name="timer_start">Iniciar</string>
++    <string name="timer_min_fmt">%d min</string>
++    <string name="ambient_prompt_title">Modo Ambiente desactivado</string>
++    <string name="ambient_prompt_body">¿Deseas activar el Modo Ambiente (fotos, reloj y clima) en este televisor?</string>
++    <string name="ambient_enable">Activar</string>
++    <string name="ambient_not_now">Ahora no</string>
++    <string name="bt_paired">Emparejado</string>
++    <string name="bt_connecting">Conectando a %1$s…</string>
++    <string name="bt_disconnecting">Desconectando %1$s…</string>
++    <string name="bt_off">Bluetooth desactivado</string>
++    <string name="bt_none">Sin dispositivos emparejados</string>
++    <string name="bt_system_settings">Ajustes de Bluetooth</string>
++    <string name="wifi_saved">Guardada</string>
++    <string name="wifi_connecting">Conectando a %1$s…</string>
++    <string name="wifi_off">Wi-Fi desactivado</string>
++    <string name="wifi_system_settings">Ajustes de Wi-Fi</string>
++    <string name="wifi_password_hint">Contraseña</string>
++    <string name="wifi_connect">Conectar</string>
++    <string name="wifi_secured">Requiere contraseña</string>
++    <string name="wifi_open">Abierta</string>
++    <string name="wifi_failed">Abre Ajustes de Wi-Fi para completar la conexión</string>
++    <string name="action_back">Volver</string>
++    <string name="action_connect">Conectar</string>
++    <string name="action_disconnect">Desconectar</string>
++    <string name="wifi_forget">Olvidar red</string>
++    <string name="wifi_disconnected">Desconectado de %1$s</string>
++    <string name="wifi_forgot">Red %1$s olvidada</string>
++    <string name="wifi_status_fmt">%1$d%% señal · %2$d Mbps · %3$s</string>
++    <string name="bt_unpair">Desvincular</string>
++    <string name="bt_unpaired">%1$s desvinculado</string>
      <string name="settings">Ajustes</string>
      <string name="choose_input">Entradas</string>
      <string name="connected">Conectado</string>
-@@ -26,6 +27,7 @@
+@@ -18,7 +53,7 @@
+     <string name="offline">Sin conexión</string>
+     <string name="not_available">No disponible en este TV</string>
+     <string name="cant_open">No se puede abrir %1$s</string>
+-    <string name="date_format">EEEE d \'de\' MMMM</string>
++    <string name="date_format">EEEE d MMMM</string>
+     <string name="stats_cpu">CPU %1$d%%</string>
+     <string name="stats_memory">Memoria %1$d MB libres</string>
+     <string name="stats_storage">Almacenamiento %1$s libre</string>
+@@ -26,6 +61,7 @@
      <string name="launcher_settings">Ajustes del lanzador</string>
      <string name="columns_label">Aplicaciones por fila</string>
      <string name="animations_state">Animaciones: %1$s</string>
@@ -853,18 +2285,52 @@ index 3deebbea..8251cae2 100644
      <bool name="app_library">false</bool>
  
 diff --git a/launcher/app/src/main/res/values/strings.xml b/launcher/app/src/main/res/values/strings.xml
-index 58d2338c..a33658fd 100644
+index 58d2338c..ec0b13f5 100644
 --- a/launcher/app/src/main/res/values/strings.xml
 +++ b/launcher/app/src/main/res/values/strings.xml
-@@ -3,6 +3,7 @@
+@@ -3,6 +3,41 @@
      <string name="app_name">Home</string>
      <string name="inputs">Inputs</string>
      <string name="wifi">Wi-Fi</string>
 +    <string name="bluetooth">Bluetooth</string>
++    <string name="sleep_timer">Sleep timer</string>
++    <string name="timer_cancel">Cancel timer</string>
++    <string name="timer_custom">Custom…</string>
++    <string name="timer_custom_title">Sleep timer (minutes)</string>
++    <string name="timer_start">Start</string>
++    <string name="timer_min_fmt">%d min</string>
++    <string name="ambient_prompt_title">Ambient Mode is off</string>
++    <string name="ambient_prompt_body">Do you want to enable Ambient Mode (photos, clock and weather) on this TV?</string>
++    <string name="ambient_enable">Enable</string>
++    <string name="ambient_not_now">Not now</string>
++    <string name="bt_paired">Paired</string>
++    <string name="bt_connecting">Connecting to %1$s…</string>
++    <string name="bt_disconnecting">Disconnecting %1$s…</string>
++    <string name="bt_off">Bluetooth is off</string>
++    <string name="bt_none">No paired devices</string>
++    <string name="bt_system_settings">Bluetooth settings</string>
++    <string name="wifi_saved">Saved</string>
++    <string name="wifi_connecting">Connecting to %1$s…</string>
++    <string name="wifi_off">Wi-Fi is off</string>
++    <string name="wifi_system_settings">Wi-Fi settings</string>
++    <string name="wifi_password_hint">Password</string>
++    <string name="wifi_connect">Connect</string>
++    <string name="wifi_secured">Password required</string>
++    <string name="wifi_open">Open</string>
++    <string name="wifi_failed">Open Wi-Fi settings to finish connecting</string>
++    <string name="action_back">Back</string>
++    <string name="action_connect">Connect</string>
++    <string name="action_disconnect">Disconnect</string>
++    <string name="wifi_forget">Forget network</string>
++    <string name="wifi_disconnected">Disconnected from %1$s</string>
++    <string name="wifi_forgot">Forgot %1$s</string>
++    <string name="wifi_status_fmt">%1$d%% signal · %2$d Mbps · %3$s</string>
++    <string name="bt_unpair">Unpair device</string>
++    <string name="bt_unpaired">Unpaired %1$s</string>
      <string name="settings">Settings</string>
      <string name="choose_input">Inputs</string>
      <string name="connected">Connected</string>
-@@ -38,6 +39,7 @@
+@@ -38,6 +73,7 @@
      <string name="wallpaper_applied">Wallpaper changed</string>
      <string name="wallpaper_theme_default">Theme default</string>
      <string name="animations_state">Animations: %1$s</string>
@@ -873,7 +2339,7 @@ index 58d2338c..a33658fd 100644
      <string name="advanced_effects_state">Advanced effects: %1$s</string>
      <string name="advanced_effects_warning">Adds a lifted tile, icon zoom and smooth colour transitions. May increase memory use; the actual difference depends on your TV.</string>
 diff --git a/launcher/build-and-install.sh b/launcher/build-and-install.sh
-index 16997799..64b20d08 100755
+index 16997799..4c076003 100755
 --- a/launcher/build-and-install.sh
 +++ b/launcher/build-and-install.sh
 @@ -3,13 +3,20 @@
@@ -905,7 +2371,7 @@ index 16997799..64b20d08 100755
  fi
  printf '%s\n' \
 -  "pm grant com.gathin.tvhome android.permission.ACCESS_FINE_LOCATION 2>/dev/null; echo location-granted" \
-+  "pm grant com.gathin.tvhome android.permission.ACCESS_COARSE_LOCATION 2>/dev/null; pm grant com.gathin.tvhome android.permission.ACCESS_FINE_LOCATION 2>/dev/null; settings put secure location_providers_allowed +gps 2>/dev/null; settings put secure location_mode 3 2>/dev/null; echo location-granted" \
++  "pm grant com.gathin.tvhome android.permission.ACCESS_COARSE_LOCATION 2>/dev/null; pm grant com.gathin.tvhome android.permission.ACCESS_FINE_LOCATION 2>/dev/null; pm grant com.gathin.tvhome android.permission.BLUETOOTH_CONNECT 2>/dev/null; pm grant com.gathin.tvhome android.permission.WRITE_SECURE_SETTINGS 2>/dev/null; settings put secure location_providers_allowed +gps 2>/dev/null; settings put secure location_mode 3 2>/dev/null; echo location-granted" \
    "cmd package compile -m speed -f com.gathin.tvhome" \
    "$DISABLE_STOCK" \
    "cmd package set-home-activity --user 0 com.gathin.tvhome/.MainActivity" \

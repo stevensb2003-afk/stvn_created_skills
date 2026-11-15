@@ -25,9 +25,10 @@ Gestor aislado de instalaciones, debloat y personalizaciones de **CleanYourTV** 
 ## ✨ Funciones de la Edición Personal (`resources/`)
 
 * **Encabezado limpio:** reloj grande (`72sp`) + fecha directa (`16sp`) y barra superior (`Wi-Fi` → `Bluetooth` → `Entradas HDMI` → `Temporizador` → `Reordenar` → `Ajustes`).
-* **Wi-Fi Popover (`btnWifi`):** lista red conectada, guardadas y cercanas; diálogo nativo para contraseña (con fallback a Ajustes en Android 10+).
-* **Bluetooth Popover (`btnBluetooth`):** dispositivos emparejados (filtrando controles HID), conexión directa y `%` de batería.
-* **Temporizador de Reposo (`btnTimer`):** presets (`15`–`120 min`), duración personalizada y cuenta regresiva `MM:SS` en vivo.
+* **Popovers Glass UI con sub-vistas animadas (`AutoTransition`):** navegación interna in-place dentro de cada popover con botón **Volver** (sin `AlertDialog` externos ni salir de Inicio).
+* **Wi-Fi Popover (`btnWifi`):** lista red conectada, guardadas y cercanas (con ícono de candado `ic_lock.xml` para redes seguras); vista de detalle con `%` de señal, velocidad en `Mbps`, banda (`2.4 GHz` / `5 GHz`), dirección `IP` y acciones **Conectar** / **Desconectar** / **Olvidar red**, más diálogo nativo de contraseña (con fallback a Ajustes en Android 10+).
+* **Bluetooth Popover (`btnBluetooth`):** dispositivos emparejados (filtrando controles HID) con `%` de batería; vista de detalle in-place con **Conectar** / **Desconectar** y **Desvincular** (`removeBond`).
+* **Temporizador de Reposo (`btnTimer`):** presets (`15`–`120 min`), selector **Personalizado** integrado in-place (`-5` / `+5` min, `5`–`360 min`) con **Iniciar** / **Volver**, y cuenta regresiva `MM:SS` en vivo.
 * **Modo Ambiente con Atrás:** lanza `Somnambulator` / `dreamx` al presionar Atrás en Inicio (con diálogo para activarlo si está deshabilitado).
 * **Pie de página sutil:** botones minimalistas `Ajustes del lanzador` y `Editar` pensados para controles remotos sin tecla Menú.
 
@@ -39,8 +40,8 @@ Gestor aislado de instalaciones, debloat y personalizaciones de **CleanYourTV** 
 | :--- | :--- |
 | [`SKILL.md`](./SKILL.md) | Instrucciones completas de la skill, matriz de aislamiento y checklist post-ejecución. |
 | [`scripts/tv_manager.py`](./scripts/tv_manager.py) | CLI Python (`check-deps`, `check-compat`, `list`, `find`, `create`, `update`). Soporta variables `CLEANYOURTV_UPSTREAM`, `CLEANYOURTV_BASE` y `CLEANYOURTV_TVS_DIR`. |
-| [`resources/cleanyourtv-personal.patch`](./resources/cleanyourtv-personal.patch) | Parche `git diff` completo de la edición personal sobre `Gathin23/cleanyourtv`. |
-| [`resources/personal-overrides/`](./resources/personal-overrides/) | Archivos modificados y nuevos drawables (`ic_bluetooth.xml`, `ic_cast.xml`, `ic_timer.xml`, `keep.xml`, `MainActivity.java`, `LauncherSettingsActivity.java`, etc.) listos para aplicar a una copia upstream. |
+| [`resources/cleanyourtv-personal.patch`](./resources/cleanyourtv-personal.patch) | Parche `git diff` completo de la edición personal (17 archivos rastreados modificados) sobre `Gathin23/cleanyourtv`. |
+| [`resources/personal-overrides/`](./resources/personal-overrides/) | Los 20 archivos modificados y nuevos drawables (`ic_bluetooth.xml`, `ic_cast.xml`, `ic_lock.xml`, `ic_timer.xml`, `item_input.xml`, `keep.xml`, `MainActivity.java`, `LauncherSettingsActivity.java`, etc.) listos para aplicar a una copia upstream. |
 
 ---
 
