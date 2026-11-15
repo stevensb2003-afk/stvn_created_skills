@@ -35,21 +35,31 @@ Intenta ejecutar `winget install -e --id Gyan.FFmpeg ImageMagick.ImageMagick yt-
 ---
 
 ## PASO 3: SINCRONIZACIÓN DEL REPOSITORIO MAESTRO DE SKILLS
-Para que el usuario tenga acceso a HyperFrames, Brandkit y demás herramientas avanzadas, debes descargar el repositorio de skills de la agencia directamente en el cerebro de Antigravity.
+Para que el usuario tenga acceso a HyperFrames, Brandkit, Steven Skills y demás herramientas avanzadas, debes descargar el repositorio maestro de skills e instalarlas directamente en el cerebro de Antigravity (`~/.gemini/config/skills/`).
 Ejecuta este comando exacto en la terminal:
 
 **Para macOS/Linux:**
 ```bash
-mkdir -p ~/.gemini/config/skills
-if [ -d "$HOME/.gemini/config/skills/stvn_created_skills" ]; then
+REPO_DIR="$HOME/.gemini/config/stvn_created_skills"
+if [ -d "$REPO_DIR/.git" ]; then
     echo "Actualizando skills de la agencia..."
-    cd "$HOME/.gemini/config/skills/stvn_created_skills" && git pull
+    git -C "$REPO_DIR" pull
 else
     echo "Descargando skills maestras..."
-    git clone https://github.com/stevensb2003-afk/stvn_created_skills.git "$HOME/.gemini/config/skills/stvn_created_skills"
+    git clone https://github.com/stevensb2003-afk/stvn_created_skills.git "$REPO_DIR"
 fi
+bash "$REPO_DIR/install.sh" --all
 ```
-*(Si es Windows, adapta el script usando `%USERPROFILE%\.gemini\config\skills` y git clone).*
+**Para Windows (PowerShell):**
+```powershell
+$RepoDir = "$env:USERPROFILE\.gemini\config\stvn_created_skills"
+if (Test-Path "$RepoDir\.git") {
+    git -C $RepoDir pull
+} else {
+    git clone https://github.com/stevensb2003-afk/stvn_created_skills.git $RepoDir
+}
+& "$RepoDir\install.ps1" -All
+```
 
 ---
 

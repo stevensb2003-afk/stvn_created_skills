@@ -1,0 +1,911 @@
+diff --git a/examples/xiaomi-tv-a-pro-2026/debloat.txt b/examples/xiaomi-tv-a-pro-2026/debloat.txt
+index d1e37b9f..3f2d2bcc 100644
+--- a/examples/xiaomi-tv-a-pro-2026/debloat.txt
++++ b/examples/xiaomi-tv-a-pro-2026/debloat.txt
+@@ -46,15 +46,15 @@ com.mediatek.tv.systemupdater
+ # Disable it before build-and-install.sh, or Home may crash-loop when launcherx goes away.
+ com.google.android.tungsten.setupwraith
+ 
+-# Personal choice: Chromecast built-in (AirPlay, Miracast and Mi Cast kept)
+-com.google.android.apps.mediashell
++# Personal choice: Chromecast built-in (kept enabled so Google Cast works)
++# com.google.android.apps.mediashell
+ 
+ # Preloaded apps
+ com.google.android.play.games
+ com.xiaomi.mimusic2
+ 
+-# Personal choice: preloaded streaming apps not used (YouTube and Netflix kept)
+-com.amazon.amazonvideo.livingroom
++# Personal choice: preloaded streaming apps not used (YouTube, Netflix, Prime Video kept)
++# com.amazon.amazonvideo.livingroom
+ com.google.android.youtube.tvmusic
+ 
+ # Optional, uncomment if unused
+diff --git a/launcher/app/src/main/AndroidManifest.xml b/launcher/app/src/main/AndroidManifest.xml
+index 1f96dd06..ed0b6184 100644
+--- a/launcher/app/src/main/AndroidManifest.xml
++++ b/launcher/app/src/main/AndroidManifest.xml
+@@ -12,8 +12,8 @@
+     <!-- Needed since Android 10 to read the Wi-Fi network name for the network pill. Never requested at
+          runtime: build-and-install grants it with pm grant, so lint's Android 12 "ask for COARSE with
+          FINE" rule does not apply here. -->
+-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
+-        tools:ignore="CoarseFineLocation" />
++    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
++    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+ 
+     <!-- Android 11+ package visibility: lets the launcher list the TV apps it shows as tiles, and the
+          apps that declare a module card (docs/specs/card.md). -->
+diff --git a/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java b/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
+index 5b9d0715..809fa51f 100644
+--- a/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
++++ b/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
+@@ -11,9 +11,16 @@ import android.content.res.Resources;
+ import android.graphics.Bitmap;
+ import android.graphics.Canvas;
+ import android.graphics.Color;
++import android.graphics.LinearGradient;
+ import android.graphics.Outline;
++import android.graphics.Paint;
+ import android.graphics.Rect;
++import android.graphics.Shader;
++import android.graphics.Typeface;
++import android.graphics.drawable.BitmapDrawable;
+ import android.graphics.drawable.Drawable;
++import android.media.tv.TvInputInfo;
++import android.media.tv.TvInputManager;
+ import android.net.Uri;
+ import android.provider.Settings;
+ import android.util.DisplayMetrics;
+@@ -56,10 +63,11 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+         void onLibraryRequested();
+         void onLibraryFocused();
+         void onLibraryUp();
++        void onInputSelected(String inputId);
+     }
+ 
+     static final class Entry {
+-        static final int APP = 0, HOME_SETTINGS = 1, CARD = 2, EMPTY = 3;
++        static final int APP = 0, HOME_SETTINGS = 1, CARD = 2, EMPTY = 3, INPUT = 4;
+ 
+         final int kind;
+         final String label;
+@@ -71,12 +79,21 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+         final String name;
+         /** Ambient glow colour; 0 until sampled from the banner, or the card's accent from the start. */
+         int ambient;
++        /** Passthrough input ID for INPUT tiles, null otherwise. */
++        final String inputId;
++        /** Sort order among INPUT tiles. */
++        final int inputOrder;
+ 
+         Entry(String label, ComponentName component, Drawable banner, Drawable icon) {
+-            this(APP, label, component, banner, icon, null, 0);
++            this(APP, label, component, banner, icon, null, 0, null, 0);
+         }
+ 
+         Entry(int kind, String label, ComponentName component, Drawable banner, Drawable icon, String caption, int accent) {
++            this(kind, label, component, banner, icon, caption, accent, null, 0);
++        }
++
++        Entry(int kind, String label, ComponentName component, Drawable banner, Drawable icon, String caption, int accent,
++              String inputId, int inputOrder) {
+             this.kind = kind;
+             this.label = label;
+             this.component = component;
+@@ -85,6 +102,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+             this.icon = icon;
+             this.name = caption == null ? label : label + " \u00B7 " + caption;
+             this.ambient = accent;
++            this.inputId = inputId;
++            this.inputOrder = inputOrder;
+         }
+     }
+ 
+@@ -189,6 +208,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+     /** Packages with a leanback entry at the last reload(): their tiles launch with the leanback category. */
+     private Set<String> leanbackPackages = new HashSet<>();
+     private final boolean showHomeSettings;
++    private final boolean showInputTiles;
+     /** Calmer motion for weak GPUs (config.xml, reduced_motion): no overshoot, shorter fades. */
+     private final boolean reducedMotion;
+     /** Package to the action its tile sends instead of the start screen (config.xml, launch_actions). */
+@@ -207,6 +227,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+         this.animations = cfg.animations;
+         this.advancedEffects = cfg.animations && cfg.advancedEffects;
+         this.showHomeSettings = cfg.showHomeSettingsShortcut;
++        this.showInputTiles = cfg.showInputTiles;
+         this.showLibrary = cfg.appLibrary;
+         this.reducedMotion = cfg.reducedMotion;
+         this.rowsBelowDock = cfg.rowsBelowDock;
+@@ -270,17 +291,55 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+                 fresh.add(new Entry(label, component, banner, icon));
+             }
+         }
++        if (showInputTiles) {
++            addInputEntries(fresh);
++        }
++        // Determine the top dock apps: if the owner saved a custom order, the first dockSize normal apps in that
++        // saved order occupy the dock; otherwise the configured dock_apps (favourites) do.
++        Map<String, Integer> dockOrder = new HashMap<>();
++        if (!savedRanks.isEmpty()) {
++            List<Entry> rankedCandidates = new ArrayList<>();
++            for (Entry e : fresh) {
++                if (lowerGridPriority(e) == 1000
++                        && savedRanks.containsKey(e.component.flattenToShortString())) {
++                    rankedCandidates.add(e);
++                }
++            }
++            Collections.sort(rankedCandidates, (a, b) -> Integer.compare(
++                    savedRanks.get(a.component.flattenToShortString()),
++                    savedRanks.get(b.component.flattenToShortString())));
++            for (int i = 0; i < Math.min(dockSize, rankedCandidates.size()); i++) {
++                dockOrder.put(rankedCandidates.get(i).component.flattenToShortString(), i);
++            }
++        }
++        if (dockOrder.isEmpty()) {
++            List<Entry> favCandidates = new ArrayList<>();
++            for (Entry e : fresh) {
++                if (favourites.indexOf(e.pkg) >= 0 && lowerGridPriority(e) == 1000) {
++                    favCandidates.add(e);
++                }
++            }
++            Collections.sort(favCandidates, (a, b) -> Integer.compare(
++                    favourites.indexOf(a.pkg), favourites.indexOf(b.pkg)));
++            for (int i = 0; i < Math.min(dockSize, favCandidates.size()); i++) {
++                dockOrder.put(favCandidates.get(i).component.flattenToShortString(), i);
++            }
++        }
+         Collections.sort(fresh, (a, b) -> {
+-            // The owner's own order first; tiles it does not know (new installs) follow by the rule below.
+-            int saved = Order.compare(savedRanks, a.component.flattenToShortString(), b.component.flattenToShortString());
+-            if (saved != 0) return saved;
+-            int fa = favourites.indexOf(a.pkg), fb = favourites.indexOf(b.pkg);
+-            if (fa >= 0 || fb >= 0) {
+-                if (fa < 0) return 1;
+-                if (fb < 0) return -1;
+-                return Integer.compare(fa, fb);
++            String keyA = a.component.flattenToShortString();
++            String keyB = b.component.flattenToShortString();
++            Integer da = dockOrder.get(keyA), db = dockOrder.get(keyB);
++            if (da != null || db != null) {
++                if (da == null) return 1;
++                if (db == null) return -1;
++                return Integer.compare(da, db);
+             }
+-            // Cards come right after the configured dock apps, before the alphabetical grid.
++            // Pinned at the start of the lower grid: 1) Live TV, 2) Chromecast, 3) connected HDMI/AV inputs.
++            int pa = lowerGridPriority(a), pb = lowerGridPriority(b);
++            if (pa != pb) return Integer.compare(pa, pb);
++            // Remaining normal apps: owner's saved order first, then cards, then alphabetical.
++            int saved = Order.compare(savedRanks, keyA, keyB);
++            if (saved != 0) return saved;
+             boolean ca = a.kind == Entry.CARD, cb = b.kind == Entry.CARD;
+             if (ca != cb) return ca ? -1 : 1;
+             return a.label.compareToIgnoreCase(b.label);
+@@ -293,7 +352,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+                     ctx.getDrawable(R.drawable.ic_home_settings), null, 0));
+         }
+         docked = 0;
+-        while (docked < fresh.size() && favourites.contains(fresh.get(docked).pkg)) docked++;
++        while (docked < fresh.size() && dockOrder.containsKey(fresh.get(docked).component.flattenToShortString())) docked++;
+         emptySlots = dockRow && !reordering ? DockSlots.empty(docked, dockSize, fresh.size(), fillDock) : 0;
+         for (int i = 0; i < emptySlots; i++) {
+             fresh.add(docked + i, new Entry(Entry.EMPTY, "", new ComponentName(ctx, "empty-dock-slot-" + i),
+@@ -304,13 +363,156 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+         notifyDataSetChanged();
+     }
+ 
++    /**
++     * Lower-grid priority right below the 4 main dock apps:
++     * 0 = Live TV, 1 = Chromecast, 2..99 = connected HDMI/AV inputs in port order, 1000 = regular apps.
++     */
++    private static int lowerGridPriority(Entry e) {
++        if ("com.mitv.livetv".equals(e.pkg) || "com.sony.dtv.tvx".equals(e.pkg)) return 0;
++        if ("com.google.android.apps.mediashell".equals(e.pkg)) return 1;
++        if (e.kind == Entry.INPUT) return 2 + e.inputOrder;
++        return 1000;
++    }
++
+     /** A banner_* drawable bundled with the launcher, or null for none or a name that is not one. */
+     private Drawable bundledBanner(String name) {
+         if (name == null || !name.startsWith("banner_")) return null;
++        if ("banner_tv".equals(name)) {
++            return makeLabeledBanner(0xFFE20074, 0xFF8C0049, R.drawable.ic_livetv, ctx.getString(R.string.live_tv));
++        }
+         int id = ctx.getResources().getIdentifier(name, "drawable", ctx.getPackageName());
+         return id != 0 ? ctx.getDrawable(id) : null;
+     }
+ 
++    /** Adds connected passthrough HDMI and AV inputs as clickable tiles in the first row of the lower grid. */
++    private void addInputEntries(List<Entry> fresh) {
++        TvInputManager tim = (TvInputManager) ctx.getSystemService(Context.TV_INPUT_SERVICE);
++        if (tim == null) return;
++        List<TvInputInfo> inputs = new ArrayList<>(tim.getTvInputList());
++        Collections.sort(inputs, (a, b) -> {
++            boolean ha = a.getType() == TvInputInfo.TYPE_HDMI, hb = b.getType() == TvInputInfo.TYPE_HDMI;
++            if (ha != hb) return ha ? -1 : 1;
++            return String.valueOf(a.loadLabel(ctx)).compareToIgnoreCase(String.valueOf(b.loadLabel(ctx)));
++        });
++        Set<String> inputIds = new HashSet<>();
++        for (TvInputInfo info : inputs) inputIds.add(info.getId());
++        Map<String, List<TvInputInfo>> cecDevices = new HashMap<>();
++        for (TvInputInfo info : inputs) {
++            String parent = info.getParentId();
++            if (parent == null || !inputIds.contains(parent)) continue;
++            if (!info.isPassthroughInput() || info.isHidden(ctx)) continue;
++            List<TvInputInfo> onPort = cecDevices.get(parent);
++            if (onPort == null) cecDevices.put(parent, onPort = new ArrayList<>());
++            onPort.add(info);
++        }
++        int hdmiPorts = 0, hdmiConnected = 0;
++        for (TvInputInfo info : inputs) {
++            if (!info.isPassthroughInput() || info.getType() != TvInputInfo.TYPE_HDMI) continue;
++            if (info.getParentId() != null && inputIds.contains(info.getParentId())) continue;
++            hdmiPorts++;
++            if (tim.getInputState(info.getId()) == TvInputManager.INPUT_STATE_CONNECTED) hdmiConnected++;
++        }
++        // Sony TVs report all bare HDMI ports as state 0 (CONNECTED) even when empty, while actual connected
++        // HDMI-CEC devices register child inputs under cecDevices.
++        boolean hdmiStateBogus = hdmiPorts > 1 && hdmiConnected == hdmiPorts;
++        int[][] hdmiPalette = {
++            {0xFF1D63B8, 0xFF0C2B54},
++            {0xFF0F8B8D, 0xFF073E40},
++            {0xFF6B3FA0, 0xFF2F194B},
++            {0xFF2E7D32, 0xFF123614}
++        };
++        int hdmiIdx = 0;
++        int order = 0;
++        for (TvInputInfo info : inputs) {
++            if (!info.isPassthroughInput() || info.isHidden(ctx)) continue;
++            if (info.getParentId() != null && inputIds.contains(info.getParentId())) continue;
++            boolean hdmi = info.getType() == TvInputInfo.TYPE_HDMI;
++            int portIndex = hdmiIdx;
++            if (hdmi) hdmiIdx++;
++            CharSequence l = info.loadLabel(ctx);
++            String portLabel = l == null ? info.getId() : l.toString();
++            if (hdmi && !portLabel.toUpperCase(java.util.Locale.ROOT).contains("HDMI")) portLabel = "HDMI " + portLabel;
++            CharSequence custom = info.loadCustomLabel(ctx);
++            boolean named = custom != null && custom.length() > 0 && !custom.toString().equals(portLabel);
++
++            int startColor, endColor, iconRes;
++            if (hdmi) {
++                int[] pair = hdmiPalette[portIndex % hdmiPalette.length];
++                startColor = pair[0];
++                endColor = pair[1];
++                iconRes = R.drawable.ic_input;
++            } else {
++                startColor = 0xFFC2591A;
++                endColor = 0xFF5C2809;
++                iconRes = R.drawable.ic_av;
++            }
++
++            List<TvInputInfo> devices = cecDevices.get(info.getId());
++            if (devices != null && !devices.isEmpty()) {
++                for (TvInputInfo device : devices) {
++                    if (tim.getInputState(device.getId()) != TvInputManager.INPUT_STATE_CONNECTED) continue;
++                    CharSequence devName = device.loadCustomLabel(ctx);
++                    if (devName == null || devName.length() == 0) devName = named ? custom : device.loadLabel(ctx);
++                    String tileLabel = (devName == null || devName.length() == 0)
++                            ? portLabel : devName.toString();
++                    Drawable banner = makeLabeledBanner(startColor, endColor, iconRes, tileLabel);
++                    Drawable icon = ctx.getDrawable(iconRes);
++                    ComponentName comp = new ComponentName(ctx, "input-" + device.getId());
++                    fresh.add(new Entry(Entry.INPUT, tileLabel, comp, banner, icon, null, startColor, device.getId(), order++));
++                }
++                continue;
++            }
++
++            // Bare port with no CEC child: only show when the TV reports genuine per-port connection state.
++            if (hdmi && hdmiStateBogus) continue;
++            if (tim.getInputState(info.getId()) != TvInputManager.INPUT_STATE_CONNECTED) continue;
++            String label = named ? custom.toString() : portLabel;
++            Drawable banner = makeLabeledBanner(startColor, endColor, iconRes, label);
++            Drawable icon = ctx.getDrawable(iconRes);
++            ComponentName comp = new ComponentName(ctx, "input-" + info.getId());
++            fresh.add(new Entry(Entry.INPUT, label, comp, banner, icon, null, startColor, info.getId(), order++));
++        }
++    }
++
++    /** Renders a 16:9 tile banner with a gradient background, centered icon and bold readable title text. */
++    private Drawable makeLabeledBanner(int startColor, int endColor, int iconRes, String title) {
++        int w = 360, h = 202;
++        Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
++        Canvas canvas = new Canvas(bmp);
++        Paint bg = new Paint(Paint.ANTI_ALIAS_FLAG);
++        bg.setShader(new LinearGradient(0, 0, w, h, startColor, endColor, Shader.TileMode.CLAMP));
++        canvas.drawRect(0, 0, w, h, bg);
++
++        Drawable icon = ctx.getDrawable(iconRes);
++        if (icon != null) {
++            Drawable d = icon.getConstantState() != null ? icon.getConstantState().newDrawable().mutate() : icon.mutate();
++            d.setTint(0xFFFFFFFF);
++            int iconSize = 68;
++            int left = (w - iconSize) / 2;
++            int top = 34;
++            d.setBounds(left, top, left + iconSize, top + iconSize);
++            d.draw(canvas);
++        }
++
++        Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
++        textPaint.setColor(0xFFFFFFFF);
++        textPaint.setTextAlign(Paint.Align.CENTER);
++        float textSize = 34f;
++        textPaint.setTextSize(textSize);
++        try {
++            Typeface tf = ctx.getResources().getFont(R.font.outfit_medium);
++            if (tf != null) textPaint.setTypeface(tf);
++        } catch (Exception ignored) {
++            textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
++        }
++        while (textSize > 20f && textPaint.measureText(title) > w - 32f) {
++            textSize -= 1.5f;
++            textPaint.setTextSize(textSize);
++        }
++        canvas.drawText(title, w / 2f, 158f, textPaint);
++        return new BitmapDrawable(ctx.getResources(), bmp);
++    }
++
+     private Drawable loadBanner(PackageManager pm, ResolveInfo ri) {
+         int id = ri.activityInfo.banner;
+         if (id == 0) id = ri.activityInfo.applicationInfo.banner;
+@@ -419,25 +621,34 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+             h.label.setVisibility(View.VISIBLE);
+         }
+         h.card.setOnClickListener(v -> launch(e));
+-        h.card.setOnLongClickListener(v -> {
+-            Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + e.pkg));
+-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+-            try {
+-                ctx.startActivity(i);
+-            } catch (ActivityNotFoundException ignored) {
+-            }
+-            return true;
+-        });
++        if (e.kind == Entry.INPUT) {
++            h.card.setOnLongClickListener(null);
++        } else {
++            h.card.setOnLongClickListener(v -> {
++                Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + e.pkg));
++                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
++                try {
++                    ctx.startActivity(i);
++                } catch (ActivityNotFoundException ignored) {
++                }
++                return true;
++            });
++        }
+     }
+ 
+     /** Opens the tile's activity by explicit component, with no extras: a card can name nothing else. */
+     private void launch(Entry e) {
++        if (e.kind == Entry.INPUT) {
++            if (listener != null && e.inputId != null) listener.onInputSelected(e.inputId);
++            return;
++        }
+         if (e.kind == Entry.HOME_SETTINGS) {
+             ctx.startActivity(new Intent(ctx, HomeSettingsActivity.class)
+                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+             return;
+         }
+-        Intent i = new Intent(Intent.ACTION_MAIN)
++        Intent i = new Intent("com.google.android.apps.mediashell".equals(e.pkg)
++                ? "com.google.android.settings.CAST_RECEIVER_SETTINGS" : Intent.ACTION_MAIN)
+                 .setComponent(e.component)
+                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+         // TV apps launch with the same leanback intent as from the stock launcher or the remote, so an app
+diff --git a/launcher/app/src/main/java/com/gathin/tvhome/Config.java b/launcher/app/src/main/java/com/gathin/tvhome/Config.java
+index 8f41173e..2e566a22 100644
+--- a/launcher/app/src/main/java/com/gathin/tvhome/Config.java
++++ b/launcher/app/src/main/java/com/gathin/tvhome/Config.java
+@@ -72,6 +72,8 @@ final class Config {
+     final boolean reorderButton;
+     final String vpnApp;
+     final boolean showHomeSettingsShortcut;
++    /** Show HDMI and AV inputs as clickable tiles in the grid (config.xml, show_input_tiles). */
++    final boolean showInputTiles;
+     /** One line under the clock: CPU, free memory, free storage. Off unless config or a theme turns it on. */
+     final boolean showStats;
+     /** App library pill after the last Home row (config.xml app_library). */
+@@ -110,7 +112,7 @@ final class Config {
+                    Map<String, String> appBanners, String sourcePanelService, String sourcePanelAction, String inputAction,
+                    int columns, int rowsBelowDock, boolean animations, boolean advancedEffects,
+                    boolean shamsiDate, String greetingName, boolean moduleCards, boolean reducedMotion, boolean dockTitle, boolean dockRow, boolean reorderButton, String vpnApp,
+-                   boolean showHomeSettingsShortcut, boolean showStats, boolean appLibrary, int backgroundColor, int skyIntensity,
++                   boolean showHomeSettingsShortcut, boolean showInputTiles, boolean showStats, boolean appLibrary, int backgroundColor, int skyIntensity,
+                    int[] settingsKeycodes, boolean settingsKeyPanel, boolean wallpaperEnabled, File wallpaper, List<File> wallpapers,
+                    int wallpaperRotationMinutes, int wallpaperDim, boolean overlayApplied,
+                    Festival festival, int[] inputKeycodes, List<String> appKeys,
+@@ -141,6 +143,7 @@ final class Config {
+         this.reorderButton = reorderButton;
+         this.vpnApp = vpnApp;
+         this.showHomeSettingsShortcut = showHomeSettingsShortcut;
++        this.showInputTiles = showInputTiles;
+         this.showStats = showStats;
+         this.appLibrary = appLibrary;
+         this.backgroundColor = backgroundColor;
+@@ -189,6 +192,7 @@ final class Config {
+         boolean reorderButton = res.getBoolean(R.bool.reorder_button);
+         String vpn = res.getString(R.string.vpn_app).trim();
+         boolean homeSettings = res.getBoolean(R.bool.show_home_settings_shortcut);
++        boolean inputTiles = res.getBoolean(R.bool.show_input_tiles);
+         boolean showStats = res.getBoolean(R.bool.show_stats);
+         boolean library = res.getBoolean(R.bool.app_library);
+         int background = 0xFF000000;
+@@ -229,6 +233,7 @@ final class Config {
+             reorderButton = bool(json, "reorder_button", reorderButton);
+             vpn = string(json, "vpn_app", vpn);
+             homeSettings = bool(json, "show_home_settings_shortcut", homeSettings);
++            inputTiles = bool(json, "show_input_tiles", inputTiles);
+             showStats = bool(json, "show_stats", showStats);
+             library = bool(json, "app_library", library);
+             background = color(json, "background_color", background);
+@@ -249,6 +254,7 @@ final class Config {
+         if (chosenRows >= 0 && chosenRows <= 3) rowsBelow = chosenRows;
+         animations = choices.getBoolean("animations", animations);
+         advancedEffects = choices.getBoolean("advanced_effects", advancedEffects);
++        inputTiles = choices.getBoolean("show_input_tiles", inputTiles);
+         File wallpaper = dir != null ? new File(dir, WALLPAPER_NAME) : null;
+         if (wallpaper != null && !(wallpaper.isFile() && wallpaper.length() > 0)) wallpaper = null;
+         // A theme can also switch the wallpaper off while the file is still there.
+@@ -288,7 +294,7 @@ final class Config {
+                 packageMap(appBanners), panelService,
+                 panelAction, inputAction,
+                 Math.max(1, columns), Math.max(0, rowsBelow), animations, advancedEffects,
+-                shamsi, greetingName, moduleCards, reducedMotion, dockTitle, dockRow, reorderButton, vpn, homeSettings, showStats, library, background,
++                shamsi, greetingName, moduleCards, reducedMotion, dockTitle, dockRow, reorderButton, vpn, homeSettings, inputTiles, showStats, library, background,
+                 Math.max(0, Math.min(100, skyIntensity)), settingsKeycodes, settingsKeyPanel, wallpaperEnabled, wallpaper,
+                 wallpapers, rotationMinutes, wallpaperDim, applied,
+                 festival, inputKeycodes, appKeys, json == null ? Collections.emptyList() : raceCalendar(json), cinematic);
+diff --git a/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java
+index b48bc9e4..47eaf070 100644
+--- a/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java
++++ b/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java
+@@ -20,11 +20,13 @@ public final class LauncherSettingsActivity extends Activity {
+     private final TextView[] columnChoices = new TextView[4];
+     private final TextView[] rowChoices = new TextView[4];
+     private TextView wallpaperChoice;
++    private TextView inputTilesChoice;
+     private TextView animationsChoice;
+     private TextView advancedChoice;
+     private TextView followThemeChoice;
+     private int columns;
+     private int rowsBelowDock;
++    private boolean showInputTiles;
+     private boolean animations;
+     private boolean advancedEffects;
+ 
+@@ -36,6 +38,7 @@ public final class LauncherSettingsActivity extends Activity {
+         Config config = Config.load(this);
+         columns = config.columns;
+         rowsBelowDock = config.rowsBelowDock;
++        showInputTiles = config.showInputTiles;
+         animations = config.animations;
+         advancedEffects = config.animations && config.advancedEffects;
+ 
+@@ -71,6 +74,13 @@ public final class LauncherSettingsActivity extends Activity {
+         }
+         wallpaperChoice = findViewById(R.id.wallpaperChoice);
+         wallpaperChoice.setOnClickListener(v -> showWallpaperPicker());
++        inputTilesChoice = findViewById(R.id.inputTilesChoice);
++        inputTilesChoice.setOnClickListener(v -> {
++            showInputTiles = !showInputTiles;
++            choices.edit().putBoolean("show_input_tiles", showInputTiles).apply();
++            setResult(RESULT_OK);
++            refresh();
++        });
+         animationsChoice = findViewById(R.id.animationsChoice);
+         animationsChoice.setOnClickListener(v -> {
+             animations = !animations;
+@@ -97,10 +107,11 @@ public final class LauncherSettingsActivity extends Activity {
+         followThemeChoice.setOnClickListener(v -> {
+             if (!hasOnTvChoices()) return;
+             choices.edit().remove("columns").remove(Config.ROWS_BELOW_DOCK_KEY).remove("animations")
+-                    .remove("advanced_effects").remove(Config.WALLPAPER_CHOICE_KEY).commit();
++                    .remove("advanced_effects").remove("show_input_tiles").remove(Config.WALLPAPER_CHOICE_KEY).commit();
+             Config current = Config.load(this);
+             columns = current.columns;
+             rowsBelowDock = current.rowsBelowDock;
++            showInputTiles = current.showInputTiles;
+             animations = current.animations;
+             advancedEffects = current.animations && current.advancedEffects;
+             setResult(RESULT_OK);
+@@ -180,6 +191,8 @@ public final class LauncherSettingsActivity extends Activity {
+         for (int i = 0; i < rowChoices.length; i++) {
+             rowChoices[i].setSelected(rowsBelowDock == i);
+         }
++        inputTilesChoice.setText(getString(R.string.input_tiles_state,
++                getString(showInputTiles ? R.string.on : R.string.off)));
+         animationsChoice.setText(getString(R.string.animations_state,
+                 getString(animations ? R.string.on : R.string.off)));
+         advancedChoice.setText(getString(R.string.advanced_effects_state,
+@@ -197,6 +210,7 @@ public final class LauncherSettingsActivity extends Activity {
+     private boolean hasOnTvChoices() {
+         return choices.contains("columns") || choices.contains(Config.ROWS_BELOW_DOCK_KEY)
+                 || choices.contains("animations") || choices.contains("advanced_effects")
++                || choices.contains("show_input_tiles")
+                 || choices.contains(Config.WALLPAPER_CHOICE_KEY);
+     }
+ 
+diff --git a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
+index c38133ee..4acb6210 100644
+--- a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
++++ b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
+@@ -226,11 +226,23 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+         @Override
+         public void onInputAdded(String inputId) {
+             updateInputsButton();
++            reloadApps(false);
+         }
+ 
+         @Override
+         public void onInputRemoved(String inputId) {
+             updateInputsButton();
++            reloadApps(false);
++        }
++
++        @Override
++        public void onInputStateChanged(String inputId, int state) {
++            reloadApps(false);
++        }
++
++        @Override
++        public void onInputUpdated(String inputId) {
++            reloadApps(false);
+         }
+     };
+     /** Listens for any VPN coming up or going down, even one this app's traffic is excluded from. */
+@@ -471,6 +483,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+         }
+ 
+         btnInputs = findViewById(R.id.btnInputs);
++        View btnBluetooth = findViewById(R.id.btnBluetooth);
+         View btnSettings = findViewById(R.id.btnSettings);
+         btnInputs.setOnClickListener(v -> showInputs());
+         btnWifi.setOnClickListener(v -> openNetworkPill());
+@@ -478,6 +491,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+             open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
+             return true;
+         });
++        btnBluetooth.setOnClickListener(v -> openBluetoothSettings());
++        btnBluetooth.setOnLongClickListener(v -> {
++            open(new Intent("com.google.android.intent.action.CONNECT_INPUT"));
++            return true;
++        });
+         btnSettings.setOnClickListener(v -> open(systemIntent(Settings.ACTION_SETTINGS)));
+         btnReorder = findViewById(R.id.btnReorder);
+         btnReorder.setOnClickListener(v -> toggleReorder());
+@@ -498,7 +516,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+                 focusTile(lastFocused % COLUMNS);
+                 return true;
+             }
+-            int firstButton = btnInputs.getVisibility() == View.VISIBLE ? R.id.btnInputs : R.id.btnWifi;
++            int firstButton = R.id.btnWifi;
+             int leftButton = rtlMenuBar ? R.id.btnSettings : firstButton;
+             int rightButton = rtlMenuBar ? firstButton : R.id.btnSettings;
+             if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) return v.getId() == leftButton;
+@@ -506,10 +524,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+         };
+         btnInputs.setOnKeyListener(pillKeys);
+         btnWifi.setOnKeyListener(pillKeys);
++        btnBluetooth.setOnKeyListener(pillKeys);
+         btnSettings.setOnKeyListener(pillKeys);
+         btnReorder.setOnKeyListener(pillKeys);
+         if (advancedEffects) {
+-            for (View button : new View[]{btnInputs, btnWifi, btnReorder, btnSettings}) {
++            for (View button : new View[]{btnInputs, btnWifi, btnBluetooth, btnReorder, btnSettings}) {
+                 button.setOnFocusChangeListener((view, focused) -> view.animate()
+                         .scaleX(focused ? 1.04f : 1f).scaleY(focused ? 1.04f : 1f)
+                         .setDuration(160).start());
+@@ -1968,6 +1987,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+         open(i != null ? i : systemIntent(Settings.ACTION_WIFI_SETTINGS));
+     }
+ 
++    /** Opens the TV's Remotes & Accessories (Bluetooth) settings screen, with standard fallbacks. */
++    private void openBluetoothSettings() {
++        Intent slice = new Intent("android.settings.SLICE_SETTINGS")
++                .putExtra("slice_uri", "content://com.android.tv.settings.accessories.sliceprovider/general");
++        if (slice.resolveActivity(getPackageManager()) != null) {
++            open(slice);
++            return;
++        }
++        Intent bt = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
++        if (bt.resolveActivity(getPackageManager()) != null) {
++            open(bt);
++            return;
++        }
++        Intent pair = new Intent("com.google.android.intent.action.CONNECT_INPUT");
++        if (pair.resolveActivity(getPackageManager()) != null) {
++            open(pair);
++            return;
++        }
++        open(systemIntent(Settings.ACTION_SETTINGS));
++    }
++
++    @Override
++    public void onInputSelected(String inputId) {
++        openInput(inputId);
++    }
++
+ 
+     /**
+      * China-market MIUI TV firmware answers no standard Settings intents at all; open Xiaomi's own
+@@ -2001,11 +2046,22 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+ 
+     /** The Live TV app's launch intent: its leanback entry point, or the configured action if it has none. */
+     private Intent liveTvIntent() {
+-        if (liveTvPkg.isEmpty()) return null;
+-        Intent i = getPackageManager().getLeanbackLaunchIntentForPackage(liveTvPkg);
+-        if (i != null || liveTvAction.isEmpty()) return i;
+-        Intent byAction = new Intent(liveTvAction).setPackage(liveTvPkg);
+-        return getPackageManager().resolveActivity(byAction, 0) != null ? byAction : null;
++        for (String pkg : new String[]{liveTvPkg, "com.sony.dtv.tvx", "com.mitv.livetv"}) {
++            if (pkg == null || pkg.isEmpty()) continue;
++            Intent i = getPackageManager().getLeanbackLaunchIntentForPackage(pkg);
++            if (i != null) {
++                liveTvPkg = pkg;
++                return i;
++            }
++            if (!liveTvAction.isEmpty()) {
++                Intent byAction = new Intent(liveTvAction).setPackage(pkg);
++                if (getPackageManager().resolveActivity(byAction, 0) != null) {
++                    liveTvPkg = pkg;
++                    return byAction;
++                }
++            }
++        }
++        return null;
+     }
+ 
+     /** The TV's own source-selection panel, for TVs that have no TvInputManager (TCL Android TV 9): a
+diff --git a/launcher/app/src/main/res/layout-iw/activity_main.xml b/launcher/app/src/main/res/layout-iw/activity_main.xml
+index e546dcec..47359c76 100644
+--- a/launcher/app/src/main/res/layout-iw/activity_main.xml
++++ b/launcher/app/src/main/res/layout-iw/activity_main.xml
+@@ -312,8 +312,8 @@
+ 
+                 <TextView
+                     android:id="@+id/btnSettings"
+-                    style="@style/TopButton"
+-                    android:text="@string/settings"
++                    style="@style/TopButtonIcon"
++                    android:contentDescription="@string/settings"
+                     android:drawableStart="@drawable/ic_settings"
+                     android:nextFocusDown="@+id/grid" />
+ 
+@@ -324,6 +324,20 @@
+                     android:drawableStart="@drawable/ic_swap_vert"
+                     android:nextFocusDown="@+id/grid" />
+ 
++                <TextView
++                    android:id="@+id/btnBluetooth"
++                    style="@style/TopButtonIcon"
++                    android:contentDescription="@string/bluetooth"
++                    android:drawableStart="@drawable/ic_bluetooth"
++                    android:nextFocusDown="@+id/grid" />
++
++                <TextView
++                    android:id="@+id/btnInputs"
++                    style="@style/TopButtonIcon"
++                    android:contentDescription="@string/inputs"
++                    android:drawableStart="@drawable/ic_input"
++                    android:nextFocusDown="@+id/grid" />
++
+                 <TextView
+                     android:id="@+id/btnWifi"
+                     style="@style/TopButton"
+@@ -333,13 +347,6 @@
+                     android:text="@string/wifi"
+                     android:drawableStart="@drawable/ic_wifi"
+                     android:nextFocusDown="@+id/grid" />
+-
+-                <TextView
+-                    android:id="@+id/btnInputs"
+-                    style="@style/TopButton"
+-                    android:text="@string/inputs"
+-                    android:drawableStart="@drawable/ic_input"
+-                    android:nextFocusDown="@+id/grid" />
+             </LinearLayout>
+         </RelativeLayout>
+ 
+diff --git a/launcher/app/src/main/res/layout/activity_launcher_settings.xml b/launcher/app/src/main/res/layout/activity_launcher_settings.xml
+index 2a598211..58338a65 100644
+--- a/launcher/app/src/main/res/layout/activity_launcher_settings.xml
++++ b/launcher/app/src/main/res/layout/activity_launcher_settings.xml
+@@ -66,6 +66,11 @@
+             style="@style/SettingsRow"
+             android:layout_marginTop="28dp" />
+ 
++        <TextView
++            android:id="@+id/inputTilesChoice"
++            style="@style/SettingsRow"
++            android:layout_marginTop="10dp" />
++
+         <TextView
+             android:id="@+id/animationsChoice"
+             style="@style/SettingsRow"
+diff --git a/launcher/app/src/main/res/layout/activity_main.xml b/launcher/app/src/main/res/layout/activity_main.xml
+index b8895f0f..a10c7d94 100644
+--- a/launcher/app/src/main/res/layout/activity_main.xml
++++ b/launcher/app/src/main/res/layout/activity_main.xml
+@@ -306,13 +306,6 @@
+                 android:clipToPadding="false"
+                 android:orientation="horizontal">
+ 
+-                <TextView
+-                    android:id="@+id/btnInputs"
+-                    style="@style/TopButton"
+-                    android:text="@string/inputs"
+-                    android:drawableStart="@drawable/ic_input"
+-                    android:nextFocusDown="@+id/grid" />
+-
+                 <TextView
+                     android:id="@+id/btnWifi"
+                     style="@style/TopButton"
+@@ -323,6 +316,20 @@
+                     android:drawableStart="@drawable/ic_wifi"
+                     android:nextFocusDown="@+id/grid" />
+ 
++                <TextView
++                    android:id="@+id/btnInputs"
++                    style="@style/TopButtonIcon"
++                    android:contentDescription="@string/inputs"
++                    android:drawableStart="@drawable/ic_input"
++                    android:nextFocusDown="@+id/grid" />
++
++                <TextView
++                    android:id="@+id/btnBluetooth"
++                    style="@style/TopButtonIcon"
++                    android:contentDescription="@string/bluetooth"
++                    android:drawableStart="@drawable/ic_bluetooth"
++                    android:nextFocusDown="@+id/grid" />
++
+                 <TextView
+                     android:id="@+id/btnReorder"
+                     style="@style/TopButtonIcon"
+@@ -332,8 +339,8 @@
+ 
+                 <TextView
+                     android:id="@+id/btnSettings"
+-                    style="@style/TopButton"
+-                    android:text="@string/settings"
++                    style="@style/TopButtonIcon"
++                    android:contentDescription="@string/settings"
+                     android:drawableStart="@drawable/ic_settings"
+                     android:nextFocusDown="@+id/grid" />
+             </LinearLayout>
+diff --git a/launcher/app/src/main/res/values-es/strings.xml b/launcher/app/src/main/res/values-es/strings.xml
+index 2f7d3e2c..f11e54e4 100644
+--- a/launcher/app/src/main/res/values-es/strings.xml
++++ b/launcher/app/src/main/res/values-es/strings.xml
+@@ -3,6 +3,7 @@
+     <string name="app_name">Inicio</string>
+     <string name="inputs">Entradas</string>
+     <string name="wifi">Wi-Fi</string>
++    <string name="bluetooth">Bluetooth</string>
+     <string name="settings">Ajustes</string>
+     <string name="choose_input">Entradas</string>
+     <string name="connected">Conectado</string>
+@@ -26,6 +27,7 @@
+     <string name="launcher_settings">Ajustes del lanzador</string>
+     <string name="columns_label">Aplicaciones por fila</string>
+     <string name="animations_state">Animaciones: %1$s</string>
++    <string name="input_tiles_state">Entradas HDMI en Inicio: %1$s</string>
+     <string name="advanced_effects">Efectos avanzados</string>
+     <string name="advanced_effects_state">Efectos avanzados: %1$s</string>
+     <string name="advanced_effects_warning">Eleva las tarjetas, amplía los iconos y suaviza los cambios de color. Puede aumentar el uso de memoria; depende del televisor.</string>
+diff --git a/launcher/app/src/main/res/values/config.xml b/launcher/app/src/main/res/values/config.xml
+index 3deebbea..8251cae2 100644
+--- a/launcher/app/src/main/res/values/config.xml
++++ b/launcher/app/src/main/res/values/config.xml
+@@ -9,10 +9,11 @@
+ 
+     <!-- Apps pinned to the dock row at the bottom, in this order. Missing apps are skipped. -->
+     <string-array name="dock_apps">
++        <item>com.google.android.youtube.tv</item>
+         <item>com.netflix.ninja</item>
++        <item>com.disney.disneyplus</item>
+         <item>com.amazon.amazonvideo.livingroom</item>
+-        <item>com.google.android.youtube.tv</item>
+-        <item>in.startv.hotstar</item>
++        <item>com.crunchyroll.crunchyroid</item>
+     </string-array>
+     <!-- With fewer dock_apps than columns (or a dock app that is not installed), the free dock slots take
+          the first grid apps, so the dock never shows a gap. false leaves them empty (#162); a theme can
+@@ -23,10 +24,12 @@
+     <string-array name="hidden_apps">
+         <item>com.mediatek.wwtv.tvcenter</item>
+         <item>com.mitv.gallery</item>
++        <item>com.android.tv.settings</item>
++        <item>com.sony.dtv.tvxlauncher.programguide</item>
+     </string-array>
+ 
+     <!-- The TV's Live TV / tuner app, offered at the end of the Inputs menu. Leave empty to omit. -->
+-    <string name="live_tv_package" translatable="false">com.mediatek.wwtv.tvcenter</string>
++    <string name="live_tv_package" translatable="false">com.sony.dtv.tvx</string>
+ 
+     <!-- Some TVs give their Live TV app no leanback entry point at all, so `live_tv_package` above
+          resolves to nothing (TCL Android TV 9 on China-market sets is one). This action is then sent
+@@ -41,10 +44,14 @@
+ 
+     <!-- A tile's name instead of the app's own: "package=Name". It also shows above the dock. -->
+     <string-array name="app_labels">
++        <item>com.mitv.livetv=Live TV</item>
++        <item>com.sony.dtv.tvx=Live TV</item>
+     </string-array>
+     <!-- A tile's artwork instead of the app's banner: "package=drawable", a banner_* drawable bundled with the
+          launcher (res/drawable). banner_tv is a magenta field with the Live TV glyph. -->
+     <string-array name="app_banners">
++        <item>com.mitv.livetv=banner_tv</item>
++        <item>com.sony.dtv.tvx=banner_tv</item>
+     </string-array>
+ 
+     <!-- TVs with no TvInputManager have no HDMI list to read, but their own source-selection panel
+@@ -131,6 +138,9 @@
+          Off by default because the chooser is also available from launcher settings. -->
+     <bool name="show_home_settings_shortcut">false</bool>
+ 
++    <!-- Show HDMI and AV inputs as clickable app-style tiles in the grid (also toggleable in Launcher settings). -->
++    <bool name="show_input_tiles">true</bool>
++
+     <!-- Installed launchable apps, including ordinary Android apps. Also settable in config.json. -->
+     <bool name="app_library">false</bool>
+ 
+diff --git a/launcher/app/src/main/res/values/strings.xml b/launcher/app/src/main/res/values/strings.xml
+index 58d2338c..a33658fd 100644
+--- a/launcher/app/src/main/res/values/strings.xml
++++ b/launcher/app/src/main/res/values/strings.xml
+@@ -3,6 +3,7 @@
+     <string name="app_name">Home</string>
+     <string name="inputs">Inputs</string>
+     <string name="wifi">Wi-Fi</string>
++    <string name="bluetooth">Bluetooth</string>
+     <string name="settings">Settings</string>
+     <string name="choose_input">Inputs</string>
+     <string name="connected">Connected</string>
+@@ -38,6 +39,7 @@
+     <string name="wallpaper_applied">Wallpaper changed</string>
+     <string name="wallpaper_theme_default">Theme default</string>
+     <string name="animations_state">Animations: %1$s</string>
++    <string name="input_tiles_state">HDMI &amp; AV tiles on Home: %1$s</string>
+     <string name="advanced_effects">Advanced effects</string>
+     <string name="advanced_effects_state">Advanced effects: %1$s</string>
+     <string name="advanced_effects_warning">Adds a lifted tile, icon zoom and smooth colour transitions. May increase memory use; the actual difference depends on your TV.</string>
+diff --git a/launcher/build-and-install.sh b/launcher/build-and-install.sh
+index 16997799..64b20d08 100755
+--- a/launcher/build-and-install.sh
++++ b/launcher/build-and-install.sh
+@@ -3,13 +3,20 @@
+ set -euo pipefail
+ cd "$(dirname "$0")"
+ : "${TV_HOST:?set TV_HOST to the TV IP address, e.g. TV_HOST=192.168.1.50 $0}"
+-# macOS: java_home or Homebrew; Linux: the java on PATH.
++# Bundled portable toolchain (if present), then macOS java_home / Homebrew, then Linux PATH.
++ROOT_DIR="$(cd .. && pwd)"
++if [ -z "${JAVA_HOME:-}" ] && [ -d "$ROOT_DIR/.toolchain/jdk-17/Contents/Home" ]; then
++  export JAVA_HOME="$ROOT_DIR/.toolchain/jdk-17/Contents/Home"
++fi
+ export JAVA_HOME="${JAVA_HOME:-$(/usr/libexec/java_home -v 17 2>/dev/null || { [ -d /opt/homebrew/opt/openjdk@17 ] && echo /opt/homebrew/opt/openjdk@17; } || java -XshowSettings:properties -version 2>&1 | awk '/java.home/ {print $3}')}"
+-# Android Studio's default SDK location on macOS, then on Linux, then Homebrew's command-line tools.
++# Bundled Android SDK first, then Android Studio's default SDK location, then Homebrew's command-line tools.
++if [ -z "${ANDROID_HOME:-}" ] && [ -d "$ROOT_DIR/.toolchain/android-sdk" ]; then
++  export ANDROID_HOME="$ROOT_DIR/.toolchain/android-sdk"
++fi
+ export ANDROID_HOME="${ANDROID_HOME:-$(for d in ~/Library/Android/sdk ~/Android/Sdk; do [ -d "$d" ] && echo "$d" && break; done)}"
+ export ANDROID_HOME="${ANDROID_HOME:-/opt/homebrew/share/android-commandlinetools}"
+ export PATH="$JAVA_HOME/bin:$PATH"
+-[ -f local.properties ] || echo "sdk.dir=$ANDROID_HOME" > local.properties
++echo "sdk.dir=$ANDROID_HOME" > local.properties
+ ./gradlew assembleRelease -q --console=plain
+ TOOLS="$(cd ../tools && pwd)"   # absolute, so the venv's Python doesn't warn about "../" in its prefix
+ PY=$TOOLS/venv/bin/python
+@@ -83,7 +90,7 @@ if ! printf '%s' "$START_OUT" | grep -qF 'Status: ok' || printf '%s' "$START_OUT
+   exit 1
+ fi
+ printf '%s\n' \
+-  "pm grant com.gathin.tvhome android.permission.ACCESS_FINE_LOCATION 2>/dev/null; echo location-granted" \
++  "pm grant com.gathin.tvhome android.permission.ACCESS_COARSE_LOCATION 2>/dev/null; pm grant com.gathin.tvhome android.permission.ACCESS_FINE_LOCATION 2>/dev/null; settings put secure location_providers_allowed +gps 2>/dev/null; settings put secure location_mode 3 2>/dev/null; echo location-granted" \
+   "cmd package compile -m speed -f com.gathin.tvhome" \
+   "$DISABLE_STOCK" \
+   "cmd package set-home-activity --user 0 com.gathin.tvhome/.MainActivity" \
