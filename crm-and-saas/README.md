@@ -12,7 +12,7 @@ Skills de **código y arquitectura de producto/backend** para construir platafor
 
 | Carpeta / Skill | Propósito |
 | :--- | :--- |
-| [`steven-waba-dualhook-connection`](./steven-waba-dualhook-connection/) | Skill maestra v5.2 autocontenida: CRM Omnicanal (WhatsApp Dualhook + IG + Messenger), POS 4 modos, Hacienda CR v4.4, SaaS `/developer` y auditoría forense. |
+| [`steven-waba-dualhook-connection`](./steven-waba-dualhook-connection/) | Skill maestra v5.4 autocontenida: CRM Omnicanal (WhatsApp Dualhook + IG + Messenger), Catálogo Parametrizable/CABYS, IA Token-Densa (`<slug>_ai_agent_docs`), POS 4 modos, Hacienda CR v4.4, SaaS `/developer` y auditoría forense. |
 | [`steven-module-architect`](./steven-module-architect/) | Escáner arquitectónico y protocolo guiado para agregar nuevos módulos respetando tokens CSS, RBAC, licenciamiento y docs IA. |
 | [`steven-rbac-invitations-licensing`](./steven-rbac-invitations-licensing/) | Roles dinámicos en 3 planos (`platformDev` / Owner / `roles/{roleId}`), invitaciones SHA-256 por subdominio, `/developer` y webhooks HMAC. |
 | [`steven-meta-omnichannel-identity`](./steven-meta-omnichannel-identity/) | Integración nativa Meta Graph v25.0 (Instagram Direct + Facebook Messenger), Auto-Discovery 1-Token y unificación 360°. |

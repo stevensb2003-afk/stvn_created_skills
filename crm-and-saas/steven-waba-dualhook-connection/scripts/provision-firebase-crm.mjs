@@ -44,6 +44,8 @@ Opciones:
   --domains <csv>           Dominios autorizados Auth + App Check (ej. "localhost,crm.empresa.com")
   --dev-emails <csv>        Correos de Platform Developers para Custom Claim platformDev:true
   --role <demo|client>      Tipo de entorno en manifest (default: client)
+  --fiscal-code-mode <m>    Modo código fiscal catálogo: cabys_cr_api | custom_tax_code | disabled (default: cabys_cr_api)
+  --sku-mode <m>            Regla SKU catálogo: prefix_origin_sub_seq | prefix_seq | manual_free (default: prefix_origin_sub_seq)
   --manifest <path>         Ruta manifest GitHub (default: deploy/clients.manifest.json si existe o indicado)
   --deploy-rules            Despliega firestore.rules, storage.rules y firestore.indexes.json recicladas
   --seed                    Siembra crm_settings/branding, announcements, tenant_license y config/app_version vía REST
@@ -63,6 +65,8 @@ function parseArgs(argv) {
     domains: ['localhost', '127.0.0.1'],
     devEmails: [],
     role: 'client',
+    fiscalCodeMode: 'cabys_cr_api',
+    skuMode: 'prefix_origin_sub_seq',
     manifest: '',
     deployRules: false,
     seed: false,
@@ -100,6 +104,12 @@ function parseArgs(argv) {
         .filter(Boolean);
     } else if (a === '--role' && argv[i + 1]) {
       opts.role = argv[++i].trim() === 'demo' ? 'demo' : 'client';
+    } else if (a === '--fiscal-code-mode' && argv[i + 1]) {
+      const m = argv[++i].trim();
+      if (['cabys_cr_api', 'custom_tax_code', 'disabled'].includes(m)) opts.fiscalCodeMode = m;
+    } else if (a === '--sku-mode' && argv[i + 1]) {
+      const m = argv[++i].trim();
+      if (['prefix_origin_sub_seq', 'prefix_seq', 'manual_free'].includes(m)) opts.skuMode = m;
     } else if (a === '--manifest' && argv[i + 1]) {
       opts.manifest = argv[++i].trim();
     }
@@ -161,8 +171,10 @@ function toFirestoreFields(obj) {
   return fields;
 }
 
-async function seedCrmDefaultsRest(projectId, displayName, token) {
+async function seedCrmDefaultsRest(projectId, displayName, token, opts) {
   const baseDocUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+  const skuMode = opts?.skuMode || 'prefix_origin_sub_seq';
+  const fiscalCodeMode = opts?.fiscalCodeMode || 'cabys_cr_api';
   const docs = [
     {
       path: 'crm_settings/branding',
@@ -172,6 +184,25 @@ async function seedCrmDefaultsRest(projectId, displayName, token) {
         logoUrl: '',
         faviconUrl: '',
         radius: '0.65rem',
+      },
+    },
+    {
+      path: 'crm_settings/catalog_config',
+      data: {
+        enableOriginField: skuMode === 'prefix_origin_sub_seq',
+        enableSubSeries: false,
+        skuPolicyMode: skuMode,
+        sequencePadDigits: skuMode === 'prefix_seq' ? 3 : 2,
+        fiscalCodeMode,
+        fiscalCodeLabel: fiscalCodeMode === 'cabys_cr_api' ? 'CABYS' : 'Código Fiscal',
+        enableAccountingAccounts: true,
+        enableCostAndMargins: true,
+        enableBarcode: false,
+        enableWebCatalogSync: true,
+        origins: [
+          { id: 'imported', label: 'Importado', skuDigit: '1' },
+          { id: 'local', label: 'Compra Local', skuDigit: '2' },
+        ],
       },
     },
     {
@@ -205,7 +236,7 @@ async function seedCrmDefaultsRest(projectId, displayName, token) {
       path: 'config/app_version',
       data: {
         version: '1.0.0',
-        releaseSummary: 'Despliegue inaugural CRM v5.0',
+        releaseSummary: 'Despliegue inaugural CRM v5.4',
       },
     },
   ];
@@ -284,6 +315,8 @@ async function main() {
           domains: opts.domains,
           devEmails: opts.devEmails,
           apisCount: REQUIRED_APIS.length,
+          fiscalCodeMode: opts.fiscalCodeMode,
+          skuMode: opts.skuMode,
           willSeedCrmDocs: opts.seed,
           willDeployRules: opts.deployRules,
           manifestTarget: opts.manifest || 'none',
@@ -451,7 +484,7 @@ async function main() {
 
   // 9. Seed CRM Default Docs
   if (opts.seed && !opts.verifyOnly) {
-    report.steps.seedDocs = await seedCrmDefaultsRest(opts.project, opts.displayName, token);
+    report.steps.seedDocs = await seedCrmDefaultsRest(opts.project, opts.displayName, token, opts);
   }
 
   // 10. Deploy Recycled Rules + Update Manifest

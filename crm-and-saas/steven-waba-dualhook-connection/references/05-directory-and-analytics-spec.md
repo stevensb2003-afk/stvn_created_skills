@@ -56,6 +56,7 @@ export function buildContactSearchPrefixes(input: {
   name?: string;
   phone?: string;
   email?: string;
+  identificationNumber?: string;
   defaultCountryCode?: string;
 }): string[] {
   const prefixes = new Set<string>();
@@ -63,7 +64,7 @@ export function buildContactSearchPrefixes(input: {
   const pushTokenPrefixes = (token: string) => {
     const clean = normalizeSearchToken(token);
     if (!clean) return;
-    const maxLen = Math.min(clean.length, 18);
+    const maxLen = Math.min(clean.length, 30);
     for (let i = 1; i <= maxLen; i += 1) {
       prefixes.add(clean.slice(0, i));
     }
@@ -92,9 +93,16 @@ export function buildContactSearchPrefixes(input: {
   if (input.email) {
     const [localPart] = input.email.split('@');
     if (localPart) pushTokenPrefixes(localPart);
+    pushTokenPrefixes(input.email);
   }
 
-  return Array.from(prefixes);
+  if (input.identificationNumber) {
+    pushTokenPrefixes(input.identificationNumber);
+    const idDigits = input.identificationNumber.replace(/\D/g, '');
+    if (idDigits) pushTokenPrefixes(idDigits);
+  }
+
+  return Array.from(prefixes).slice(0, 500);
 }
 
 export function extractFirestoreIndexUrl(err: unknown): string | null {
@@ -1136,6 +1144,15 @@ Todo proyecto aprovisionado con esta skill debe registrar estos índices compues
         { "fieldPath": "assignedTo", "order": "ASCENDING" },
         { "fieldPath": "searchPrefixes", "arrayConfig": "CONTAINS" },
         { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_contacts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerId", "order": "ASCENDING" },
+        { "fieldPath": "searchPrefixes", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "lastContactAt", "order": "DESCENDING" }
       ]
     },
     {

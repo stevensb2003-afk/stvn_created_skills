@@ -12,7 +12,7 @@ stvn_created_skills/
 ├── install.sh                         # Instalador macOS / Linux (--all, --type, --skill, --link)
 ├── install.ps1                        # Instalador Windows PowerShell
 ├── docs/                              # Manuales maestros del ecosistema
-│   ├── ECOSYSTEM_STEVEN_CRM_GUIDE.md  # Mapa completo del ecosistema steven-* (v5.2) + playbooks
+│   ├── ECOSYSTEM_STEVEN_CRM_GUIDE.md  # Mapa completo del ecosistema steven-* (v5.4) + playbooks
 │   └── Creative_Agency_OS_Master_Guide.md
 │
 ├── crm-and-saas/                      # [CÓDIGO] 6 skills: CRM Omnicanal, SaaS, RBAC, Meta, Hacienda CR y Docs IA
@@ -83,7 +83,7 @@ git pull
 
 | Skill | Propósito Principal | Recursos Incluidos |
 | :--- | :--- | :--- |
-| [`steven-waba-dualhook-connection`](./crm-and-saas/steven-waba-dualhook-connection/) | Arquitectura maestra v5.2 de CRM Omnicanal (WhatsApp Dualhook + IG + Messenger), POS 4 modos, Hacienda CR v4.4, SaaS `/developer` y auditoría forense. | `SKILL.md`, `README.md`, 14 `references/`, 8 `scripts/*.mjs`, `resources/xsd/v4.4/` |
+| [`steven-waba-dualhook-connection`](./crm-and-saas/steven-waba-dualhook-connection/) | Arquitectura maestra v5.4 de CRM Omnicanal (WhatsApp Dualhook + IG + Messenger), Catálogo/CABYS, IA `<slug>_ai_agent_docs`, POS 4 modos, Hacienda CR v4.4, SaaS `/developer` y auditoría forense (12 controles). | `SKILL.md`, `README.md`, 15 `references/`, 8 `scripts/*.mjs`, `resources/xsd/v4.4/` |
 | [`steven-module-architect`](./crm-and-saas/steven-module-architect/) | Escáner de arquitectura y protocolo guiado para agregar módulos respetando tokens CSS, RBAC y docs IA. | `SKILL.md`, `README.md`, `references/`, `scripts/analyze-project-architecture.mjs` |
 | [`steven-rbac-invitations-licensing`](./crm-and-saas/steven-rbac-invitations-licensing/) | RBAC dinámico en 3 planos (`platformDev` / Owner / `roles/{roleId}`), invitaciones SHA-256 72h, `/developer` y webhooks HMAC. | `SKILL.md`, `README.md`, 2 `references/` |
 | [`steven-meta-omnichannel-identity`](./crm-and-saas/steven-meta-omnichannel-identity/) | Integración nativa Meta Graph v25.0 (Instagram Direct + Messenger), Auto-Discovery 1-Token y unificación 360°. | `SKILL.md`, `README.md`, 2 `references/` |
@@ -134,5 +134,5 @@ Suite audiovisual para generar, editar y renderizar video en código (**HyperFra
 
 ## 📖 Documentación Maestra
 
-* **[`docs/ECOSYSTEM_STEVEN_CRM_GUIDE.md`](./docs/ECOSYSTEM_STEVEN_CRM_GUIDE.md)** — Manual maestro del ecosistema, arquitectura CRM v5.2, Facturación Hacienda CR v4.4 y playbooks operativos.
+* **[`docs/ECOSYSTEM_STEVEN_CRM_GUIDE.md`](./docs/ECOSYSTEM_STEVEN_CRM_GUIDE.md)** — Manual maestro del ecosistema, arquitectura CRM v5.4, Facturación Hacienda CR v4.4 y playbooks operativos.
 * **[`docs/Creative_Agency_OS_Master_Guide.md`](./docs/Creative_Agency_OS_Master_Guide.md)** — Manual de arquitectura para producción audiovisual automatizada, dependencias (`ffmpeg`, `imagemagick`, `potrace`, `whisper`, `remotion`) y pipelines.

@@ -1,6 +1,6 @@
-# Manual Maestro del Ecosistema `steven-*` (CRM v5.2, Cloud, UI/UX y Tools)
+# Manual Maestro del Ecosistema `steven-*` (CRM v5.4, Cloud, UI/UX y Tools)
 
-> Guía práctica de referencia para **Steven, colaboradores y cualquier equipo** que instale este repositorio. Explica cómo se conectan las **17 skills `steven-*`**, la skill maestra autocontenida **`steven-waba-dualhook-connection` v5.2**, la suite de diseño UI/UX (incluyendo **`anti-vibecoding-design-guardrails`**) y la herramienta **`stevtool-cleanyourtv`**, organizadas por tipo.
+> Guía práctica de referencia para **Steven, colaboradores y cualquier equipo** que instale este repositorio. Explica cómo se conectan las **17 skills `steven-*`**, la skill maestra autocontenida **`steven-waba-dualhook-connection` v5.4**, la suite de diseño UI/UX (incluyendo **`anti-vibecoding-design-guardrails`**) y la herramienta **`stevtool-cleanyourtv`**, organizadas por tipo.
 
 ---
 
@@ -8,7 +8,7 @@
 
 ```mermaid
 flowchart TD
-    DEV["Desarrollador en Antigravity"] -->|"CRM Omnicanal Completo"| MASTER["crm-and-saas / steven-waba-dualhook-connection v5.2"]
+    DEV["Desarrollador en Antigravity"] -->|"CRM Omnicanal Completo"| MASTER["crm-and-saas / steven-waba-dualhook-connection v5.4"]
     DEV -->|"Skills Modulares de Código y Diseño"| ECO["crm-and-saas + cloud-deploy-and-security + ui-ux-and-design"]
     DEV -->|"Herramientas de Dispositivos"| TOOLS["tools / stevtool-cleanyourtv"]
 
@@ -34,7 +34,7 @@ flowchart TD
 ## 2. Catálogo Completo por Tipo
 
 ### Tipo 1: `crm-and-saas/` — Código de Producto, CRM, SaaS & Facturación CR (6 Skills)
-1. **[`steven-waba-dualhook-connection`](../crm-and-saas/steven-waba-dualhook-connection/README.md)** *(v5.2)* — Skill maestra universal para construir, aprovisionar, extender o auditar un CRM Omnicanal (WhatsApp Dualhook + IG + Messenger) con POS de 4 modos, Facturación Hacienda CR v4.4, Catálogo Maestro, Entregas/Agenda, Add-Ons B2B/PWA y licenciamiento `/developer`.
+1. **[`steven-waba-dualhook-connection`](../crm-and-saas/steven-waba-dualhook-connection/README.md)** *(v5.4)* — Skill maestra universal para construir, aprovisionar, extender o auditar un CRM Omnicanal (WhatsApp Dualhook + IG + Messenger) con Catálogo Parametrizable/CABYS, IA `<slug>_ai_agent_docs` token-densa, POS de 4 modos, Facturación Hacienda CR v4.4, Entregas/Agenda, Add-Ons B2B/PWA y licenciamiento `/developer`.
 2. **[`steven-module-architect`](../crm-and-saas/steven-module-architect/README.md)** — Escáner `analyze-project-architecture.mjs` + protocolo para agregar módulos sin romper tokens CSS, RBAC ni docs IA.
 3. **[`steven-rbac-invitations-licensing`](../crm-and-saas/steven-rbac-invitations-licensing/README.md)** — RBAC dinámico en 3 planos (`platformDev` / Owner / `roles/{roleId}`), invitaciones SHA-256 72h por subdominio, panel `/developer` y webhooks HMAC (Stripe/Tilopay/Paddle).
 4. **[`steven-meta-omnichannel-identity`](../crm-and-saas/steven-meta-omnichannel-identity/README.md)** — Instagram Direct + Facebook Messenger nativos (`Graph v25.0`), Auto-Discovery 1-Token y unificación 360° (`channelKeys`).

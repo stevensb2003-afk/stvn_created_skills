@@ -36,88 +36,117 @@ Permite mostrar una barra superior global en todo el CRM para comunicar nuevas v
 
 ## 4. Copiloto IA de Ayuda Interna en Capa Gratuita (`POST /api/crm/help-copilot/ask`)
 
-Diseñado para responder dudas operativas del personal del cliente (*"¿Cómo creo una respuesta rápida?"*, *"¿Por qué no puedo responder un chat de hace 3 días?"*) usando **Google Gemini Free Tier (`gemini-2.5-flash-lite`)** y la base documental generada en `/<proyecto>_ai_agent_docs/` (`steven-brd-docs-bootstrap`):
+Diseñado para responder dudas operativas del personal del cliente (*"¿Cómo creo una respuesta rápida?"*, *"¿Por qué no puedo responder un chat de hace 3 días?"*) en **< 1.5 s** sobre **Google Gemini Free Tier / Flash** (`gemini-3.6-flash` / `gemini-2.5-flash-lite`) y la base documental modular `<slug>_ai_agent_docs/` segregada por rol.
+
+> [!IMPORTANT]
+> **Arquitectura Completa en [Blueprint 15](./15-ai-agents-kb-architecture-and-data-efficiency.md)**: El motor completo de doble tabla de contenidos `Lxxx-Lyyy`, poda física RBAC pre-LLM por sección `##/###`, clasificador `concise | broad | detailed` con `ThinkingLevel.MINIMAL`, streaming SSE sin parpadeos (`createHelpStreamFilter`) y Circuit Breaker multi-modelo está especificado en el Blueprint 15.
+
+### 4.1 Experiencia UX Multi-Dispositivo & Bóveda Privada de Historial (`crm_help_chats`)
+1. **Desktop (`>= 768px`)**: Botón en barra superior `[[Guía · Nombre Pantalla Actual]]` + atajo global `⌘J` (Mac) / `Ctrl+J` (Windows/Linux) que abre un drawer lateral **no bloqueante** para seguir operando formularios mientras se leen los pasos; dentro de `/crm` se integra en la cabecera de la sidebar.
+2. **Móvil (`< 768px`)**: Botón flotante adaptativo (se eleva automáticamente en pantallas con barras inferiores y se oculta en `/login`); abre a pantalla completa con botón retorno `←`.
+3. **Voz en 1 Turno + Chips `Click-Pap`**: Soporta notas de voz (`<= 2 min` sin persistir audio binario, solo transcripción) y muestra botones clicables `[[Nombre Botón]]` más 2–4 chips de seguimiento (`<<OPCIONES>>`) filtrados para el rol del usuario.
+4. **Historial Privado Transaccional (`crm_help_chats/{chatId}`)**:
+   - **Acceso exclusivo Admin SDK** (`allow read, write: if false;` en `firestore.rules`): guarda `uid`, `title`, `areaLabel`, `updatedAt` y hasta **24 mensajes por conversación**, podando en `runTransaction` las conversaciones más antiguas cuando un usuario supera **10 chats activos**.
+
+### 4.2 Flujo del Endpoint Streaming (`POST /api/crm/help-copilot/ask`)
 
 ```typescript
-// src/app/api/crm/help-copilot/ask/route.ts
-import fs from 'node:fs';
-import path from 'node:path';
+// src/app/api/crm/help-copilot/ask/route.ts — Orquestador Streaming SSE con Poda RBAC y Bóveda Aislada
 import { NextRequest, NextResponse } from 'next/server';
+import { GoogleGenAI } from '@google/genai';
 import { verifyCrmRequestAuth } from '@/lib/services/crm-auth-guard';
 import { resolveCrmIntegrations } from '@/lib/services/crm-credentials-vault';
+import { buildHelpPassport, describePassport } from '@/lib/services/help-agent-rbac';
+import { retrieveAuthorizedKnowledge } from '@/lib/services/help-agent-kb-reader';
+import { classifyHelpQueryMode, createHelpStreamFilter, streamHelpGeminiWithFallback } from '@/lib/services/help-agent-stream-helper';
+import { appendHelpChatTurn } from '@/lib/services/help-agent-chats-service';
+import { resolveHelpRouteContext } from '@/lib/constants/help-route-context';
+import { buildHealthyCandidateModels } from '@/lib/utils/gemini-error-formatter';
 
-const dailyRateMap = new Map<string, { day: string; count: number }>();
-
-function loadAuthorizedBrdContext(isAdmin: boolean, question: string): string {
-  const cwd = process.cwd();
-  const docsFolder = fs.readdirSync(cwd, { withFileTypes: true }).find((d) => d.isDirectory() && d.name.endsWith('_ai_agent_docs'));
-  if (!docsFolder) return 'Base documental *_ai_agent_docs aún no generada.';
-
-  const dirPath = path.join(cwd, docsFolder.name);
-  const tocPath = path.join(dirPath, '00-CONTENT-TABLE.md');
-  const toc = fs.existsSync(tocPath) ? fs.readFileSync(tocPath, 'utf8').slice(0, 3500) : '';
-
-  const keywords = question.toLowerCase().split(/\s+/).filter((w) => w.length >= 4);
-  const candidates = fs
-    .readdirSync(dirPath)
-    .filter((f) => f.endsWith('.md') && f !== '00-CONTENT-TABLE.md')
-    .map((f) => {
-      const content = fs.readFileSync(path.join(dirPath, f), 'utf8');
-      const adminOnly = /\[ROL:\s*(ADMIN|OWNER|DEVELOPER)\]/i.test(content) && !/\[ROL:[^\]]*(TODOS|AGENT|VENDEDOR)/i.test(content);
-      if (adminOnly && !isAdmin) return null;
-      const lower = content.toLowerCase();
-      const score = keywords.reduce((s, kw) => s + (lower.includes(kw) ? 1 : 0), 0);
-      return { file: f, score, content };
-    })
-    .filter(Boolean) as Array<{ file: string; score: number; content: string }>;
-
-  candidates.sort((a, b) => b.score - a.score);
-  const body = candidates.slice(0, 2).map((c) => `### ${c.file}\n${c.content.slice(0, 12000)}`).join('\n\n');
-  return `${toc}\n\n${body}`;
-}
+const RATE_WINDOW = new Map<string, { day: string; count: number }>();
 
 export async function POST(req: NextRequest) {
   try {
     const caller = await verifyCrmRequestAuth(req, 'crm.helpCopilot');
-    const { question } = await req.json();
-    const cleanQ = String(question || '').trim().slice(0, 600);
-    if (!cleanQ) return NextResponse.json({ error: 'Pregunta vacía.' }, { status: 400 });
+    const body = await req.json();
+    const question = String(body.message || '').trim().slice(0, 1200);
+    if (!question && !body.audioBase64) {
+      return NextResponse.json({ error: 'Consulta vacía.' }, { status: 400 });
+    }
 
+    // Rate-limit protector por usuario (ej. 30 consultas/día en capa gratuita o 20/min en Tier 1)
     const day = new Date().toISOString().slice(0, 10);
-    const rateKey = `${caller.uid}:${day}`;
-    const entry = dailyRateMap.get(rateKey) || { day, count: 0 };
-    if (entry.count >= 30) return NextResponse.json({ error: 'Límite de 30 consultas/día alcanzado.' }, { status: 429 });
-    entry.count += 1;
-    dailyRateMap.set(rateKey, entry);
+    const rate = RATE_WINDOW.get(`${caller.uid}:${day}`) || { day, count: 0 };
+    if (rate.count >= 40) return NextResponse.json({ error: 'Límite diario del Copiloto alcanzado.' }, { status: 429 });
+    rate.count += 1;
+    RATE_WINDOW.set(`${caller.uid}:${day}`, rate);
 
     const creds = await resolveCrmIntegrations(caller.tenantId);
-    const apiKey = creds.helpCopilotAi?.apiKey || process.env.HELP_COPILOT_GEMINI_API_KEY || creds.ai?.apiKey || '';
-    if (!apiKey) return NextResponse.json({ error: 'Configura la tarjeta Copiloto de Ayuda IA en Conexiones y APIs.' }, { status: 503 });
+    const apiKey = creds.helpCopilotAi?.apiKey || process.env.CRM_HELP_AGENT_API_KEY || creds.ai?.apiKey || '';
+    if (!apiKey) {
+      return NextResponse.json({ error: 'Configura la tarjeta Copiloto de Ayuda IA en Conexiones y APIs.' }, { status: 503 });
+    }
 
-    const model = creds.helpCopilotAi?.modelName || 'gemini-2.5-flash-lite';
-    const context = loadAuthorizedBrdContext(caller.isCrmAdmin || caller.isOwner, cleanQ);
+    // 1. Reconstrucción Zero-Trust del pasaporte RBAC desde Firestore (nunca del cliente)
+    const passport = await buildHelpPassport(caller.uid, caller.email, caller.displayName || '');
+    const route = resolveHelpRouteContext(body.pathname || '/');
+    const mode = classifyHelpQueryMode(question);
+    // 2. Poda física Pre-LLM de secciones ##/### según [ROL: ...] + políticas vivas
+    const kb = retrieveAuthorizedKnowledge({ question, passport, route, addons: body.livePolicies || [], mode });
 
-    const gRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: 'Eres el Copiloto de Ayuda Interna del CRM. Responde en español con pasos exactos basados únicamente en la documentación autorizada para el rol del usuario.' }],
-          },
-          contents: [{ role: 'user', parts: [{ text: `DOCUMENTACIÓN:\n${context}\n\nPREGUNTA:\n${cleanQ}` }] }],
-          generationConfig: { temperature: 0.2, maxOutputTokens: 900 },
-        }),
-      }
-    );
-    if (!gRes.ok) return NextResponse.json({ error: `Gemini API error ${gRes.status}` }, { status: 502 });
-    const data = await gRes.json();
-    return NextResponse.json({
-      ok: true,
-      answer: data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sin respuesta.',
-      model,
-      remainingToday: 30 - entry.count,
+    const ai = new GoogleGenAI({ apiKey });
+    const models = buildHealthyCandidateModels('help', creds.helpCopilotAi?.modelName || 'gemini-3.6-flash');
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        const emit = (ev: unknown) => controller.enqueue(encoder.encode(JSON.stringify(ev) + '\n'));
+        try {
+          emit({ type: 'stage', stage: { id: 'rbac', label: 'Rol y secciones verificadas', detail: `${kb.sources.length} fuentes`, status: 'done' } });
+          const filter = createHelpStreamFilter(
+            Boolean(body.audioBase64),
+            (transcript) => emit({ type: 'meta', transcript }),
+            (text) => emit({ type: 'delta', text })
+          );
+
+          const { usedModel } = await streamHelpGeminiWithFallback({
+            ai,
+            models,
+            mode,
+            temperature: 0.2,
+            systemInstruction: 'Responde únicamente con CONTEXTO AUTORIZADO según el rol. Usa [[Botón]] y cierra con <<OPCIONES>>.',
+            contents: [{ role: 'user', parts: [{ text: `PERFIL:\n${describePassport(passport)}\n\nCONTEXTO:\n${kb.context}\n\nPREGUNTA:\n${question}` }] }],
+            onTextChunk: (chunk) => filter.push(chunk),
+          });
+          filter.flush();
+
+          const assistantMsg = {
+            id: `a_${Date.now()}`,
+            role: 'assistant' as const,
+            content: filter.getCleanText(),
+            createdAt: Date.now(),
+            quickOptions: filter.getQuickOptions(),
+            trace: { areaLabel: route.areaLabel, roleLabel: passport.roleLabel, sources: kb.sources, model: usedModel },
+          };
+          const chatId = await appendHelpChatTurn({
+            uid: caller.uid,
+            chatId: body.chatId,
+            areaLabel: route.areaLabel,
+            route: body.pathname || '/',
+            userMessage: { id: `u_${Date.now()}`, role: 'user', content: filter.getTranscript() || question, createdAt: Date.now() },
+            assistantMessage: assistantMsg,
+          });
+          emit({ type: 'done', chatId, message: assistantMsg });
+        } catch (err: any) {
+          emit({ type: 'error', error: err?.message || 'Error en Copiloto IA' });
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-cache, no-transform' },
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Error Copiloto' }, { status: err.statusCode || 500 });

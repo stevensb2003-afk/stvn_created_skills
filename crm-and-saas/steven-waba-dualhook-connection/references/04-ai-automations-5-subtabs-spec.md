@@ -2483,28 +2483,58 @@ export function parseRawSharedContacts(rawContacts: any[]): CrmSharedContact[] {
   });
 }
 
+export const UNSUPPORTED_INBOUND_PLACEHOLDER_PREFIX = '🔒 Mensaje temporal oculto por WhatsApp';
+
+export function isUnsupportedInboundPlaceholder(text?: string | null): boolean {
+  if (!text) return false;
+  return text.trim().startsWith(UNSUPPORTED_INBOUND_PLACEHOLDER_PREFIX);
+}
+
+/** Filtra numeración reservada de prueba/sistema de Meta Cloud API (ej. +15557005897) antes de crear contacto o chat */
+export function isMetaSystemOrTestPhone(rawPhone?: string | null): boolean {
+  const digits = String(rawPhone || '').replace(/\D/g, '');
+  return /^1555\d{7}$/.test(digits);
+}
+
 export function extractAndRegisterReferral(msg: any): CrmMessageReferral | undefined {
-  if (!msg?.referral) return undefined;
+  const rawRef = msg?.referral || msg?.context?.referral;
+  const welcomeText =
+    typeof msg?.welcome_message?.text === 'string' && msg.welcome_message.text.trim()
+      ? msg.welcome_message.text.trim()
+      : typeof rawRef?.welcome_message?.text === 'string' && rawRef.welcome_message.text.trim()
+      ? rawRef.welcome_message.text.trim()
+      : undefined;
+
+  if (!rawRef && !welcomeText) return undefined;
+
+  if (!rawRef && welcomeText) {
+    return {
+      sourceType: 'ad',
+      headline: 'Anuncio de WhatsApp',
+      welcomeMessageText: welcomeText,
+    };
+  }
 
   const referralObj: CrmMessageReferral = {
-    sourceUrl: msg.referral.source_url,
-    sourceId: msg.referral.source_id,
-    sourceType: msg.referral.source_type,
-    headline: msg.referral.headline,
-    body: msg.referral.body,
-    mediaType: msg.referral.media_type,
-    imageUrl: msg.referral.image_url,
-    videoUrl: msg.referral.video_url,
-    thumbnailUrl: msg.referral.thumbnail_url,
-    ctwaClid: msg.referral.ctwa_clid,
+    sourceUrl: rawRef.source_url,
+    sourceId: rawRef.source_id,
+    sourceType: rawRef.source_type,
+    headline: rawRef.headline,
+    body: rawRef.body,
+    mediaType: rawRef.media_type,
+    imageUrl: rawRef.image_url,
+    videoUrl: rawRef.video_url,
+    thumbnailUrl: rawRef.thumbnail_url,
+    ctwaClid: rawRef.ctwa_clid,
+    ...(welcomeText ? { welcomeMessageText: welcomeText } : {}),
   };
 
-  if (msg.referral.source_id) {
-    const hl = msg.referral.headline?.trim();
+  if (rawRef.source_id) {
+    const hl = rawRef.headline?.trim();
     const isGeneric = !hl || hl.toLowerCase().includes('publicidad');
     let smartName = hl;
-    if (isGeneric && msg.referral.body) {
-      const firstLine = msg.referral.body
+    if (isGeneric && rawRef.body) {
+      const firstLine = rawRef.body
         .split('\n')
         .map((l: string) => l.trim())
         .find((l: string) => l.length >= 4);
@@ -2513,10 +2543,10 @@ export function extractAndRegisterReferral(msg: any): CrmMessageReferral | undef
       }
     }
 
-    upsertMetaCampaign(msg.referral.source_id, {
+    upsertMetaCampaign(rawRef.source_id, {
       name: smartName || hl,
       headline: hl,
-      sourceUrl: msg.referral.source_url,
+      sourceUrl: rawRef.source_url,
     }).catch((err) => console.warn('[Auto-register Meta Campaign error]:', err));
   }
 
@@ -2524,7 +2554,9 @@ export function extractAndRegisterReferral(msg: any): CrmMessageReferral | undef
 }
 
 export function parseInboundMessageContent(msg: any): {
-  unsupported: boolean;
+  ignoreSilently?: boolean;
+  isUnsupportedNotice?: boolean;
+  unsupportedMetaCode?: string;
   type: CrmMessageType;
   bodyText: string;
   mediaObj?: any;
@@ -2620,10 +2652,29 @@ export function parseInboundMessageContent(msg: any): {
           msg.interactive.list_reply?.title ||
           msg.interactive.list_reply?.id ||
           '[Opción seleccionada]';
+      } else if (msg.interactive?.type === 'nfm_reply') {
+        bodyText = msg.interactive.nfm_reply?.body || '[Formulario de WhatsApp enviado]';
       } else {
         bodyText = '[Respuesta interactiva]';
       }
       break;
+    case 'request_welcome': {
+      type = 'text';
+      const welcomeText = msg.welcome_message?.text?.trim();
+      bodyText = welcomeText
+        ? `👋 ${welcomeText}`
+        : '👋 Cliente abrió conversación desde anuncio de WhatsApp';
+      break;
+    }
+    case 'order': {
+      type = 'text';
+      const items = Array.isArray(msg.order?.product_items) ? msg.order.product_items : [];
+      bodyText = `🛒 Pedido de catálogo WhatsApp (${items.length} ítem(s))`;
+      break;
+    }
+    case 'system':
+    case 'ephemeral':
+      return { ignoreSilently: true, type: 'text', bodyText: '' };
     case 'contacts': {
       type = 'contacts';
       const rawContacts = Array.isArray(msg.contacts) ? msg.contacts : [];
@@ -2634,15 +2685,34 @@ export function parseInboundMessageContent(msg: any): {
       sharedContactsObj = parseRawSharedContacts(rawContacts);
       break;
     }
-    case 'unsupported':
-      return { unsupported: true, type: 'text', bodyText: '' };
+    case 'unsupported': {
+      // NUNCA descartar silenciosamente: Meta envía error 131051 cuando hay Mensajes Temporales activos
+      // (en el teléfono del cliente o por saludo automático en Coexistencia) o formatos especiales CTWA.
+      const firstErr = Array.isArray(msg.errors) ? msg.errors[0] : null;
+      const unsupportedMetaCode = firstErr?.code !== undefined ? String(firstErr.code) : '131051';
+      const rawRef = msg.referral || msg.context?.referral;
+      const headline = typeof rawRef?.headline === 'string' ? rawRef.headline.trim() : '';
+      let noticeBody = `${UNSUPPORTED_INBOUND_PLACEHOLDER_PREFIX} — el cliente escribió con mensajes temporales activos (responde para recibir sus próximos mensajes)`;
+      if (headline) {
+        noticeBody = `${UNSUPPORTED_INBOUND_PLACEHOLDER_PREFIX} — consulta desde anuncio "${headline}" (responde para continuar la conversación)`;
+      } else if (rawRef) {
+        noticeBody = `${UNSUPPORTED_INBOUND_PLACEHOLDER_PREFIX} — consulta desde anuncio de Meta (responde para continuar la conversación)`;
+      }
+      return {
+        ignoreSilently: false,
+        isUnsupportedNotice: true,
+        unsupportedMetaCode,
+        type: 'text',
+        bodyText: noticeBody,
+      };
+    }
     default:
       type = 'text';
       bodyText = `[Mensaje ${msg.type}]`;
   }
 
   return {
-    unsupported: false,
+    ignoreSilently: false,
     type,
     bodyText,
     mediaObj,
@@ -2689,7 +2759,7 @@ for (let i = recentMsgs.length - 1; i >= 0; i--) {
   const m = recentMsgs[i];
   if (m.direction !== 'inbound') break;
   if (m.referral && !referral) referral = m.referral;
-  if (m.body && m.body !== '🎵 Nota de voz') {
+  if (m.body && m.body !== '🎵 Nota de voz' && !isUnsupportedInboundPlaceholder(m.body)) {
     latestClientMessages.unshift(m.body);
   }
   if (m.type === 'audio' && aiConfig.listenToAudio && audioPayloads.length < 4) {
@@ -3305,4 +3375,134 @@ Resuelve el error clásico donde un cliente escribe a las `06:15 a.m.` de un mar
 2. **Deduplicación Estricta por Hilo**: Extrae `alreadySentMediaUrls` de los últimos `30` mensajes y omite cualquier imagen o PDF ya enviado previamente al cliente.
 3. **Compuertas Deterministas de Intención para PDFs**: Limpia `selectedCatalogPdfIds = []` y `selectedSpecSheetPdfIds = []` salvo que el texto o audio del cliente pida explícitamente catálogo/lista PDF o ficha técnica/especificaciones (tope `máx 1` PDF por turno).
 4. **Matriz `0..5` de Imágenes por Sub-Serie y Ámbito**: En consultas ambiguas envía `0` fotos y primero hace la pregunta filtro; cuando el producto es claro, autocompleta slides hermanos del mismo `subSeries` hasta `máx 5` respetando el atributo `scope` del activo.
+
+---
+
+## 14. Blindaje Integral ante Mensajes Temporales de WhatsApp / Anuncios Meta (`Error 131051` — `v5.3`)
+
+### 14.1 Causa Raíz Física en Modo Coexistencia vs. WhatsApp Personal del Cliente
+En cuentas conectadas a Cloud API / Coexistencia (`smb_message_echoes`), Meta **prohíbe mensajes efímeros/temporales** y elimina el texto literal del primer mensaje enviándolo al webhook como `type: "unsupported"` (`errors[0].code === 131051`), apagando acto seguido el temporizador del hilo (*"Los mensajes temporales ya no son compatibles con esta empresa"*):
+1. **Acción obligatoria en el celular físico de la empresa (evita bloquear anuncios con saludo automático)**: En la app WhatsApp Business ir a **Ajustes → Privacidad → Duración predeterminada de los mensajes → Desactivada** (nunca en 24h / 7d / 90d).
+2. **Blindaje obligatorio en código (cubre cuando es el cliente quien trae mensajes temporales encendidos en su propio celular)**:
+   - **En `value.messages[]` (Cliente → Empresa)**: **PROHIBIDO** hacer `continue` silencioso en `msg.type === 'unsupported'` después de crear la conversación (crearía un "chat fantasma" vacío con `unreadCount: 0` invisible para el vendedor). Se persiste la burbuja `UNSUPPORTED_INBOUND_PLACEHOLDER_PREFIX` + `referral` (`msg.referral || msg.context?.referral`), `unreadCount: FieldValue.increment(1)`, Round-Robin normal y ventana de 24h abierta (`isServiceWindowOpen: true`).
+   - **En `smb_message_echoes` (Celular Empresa → Cliente)**: **OBLIGATORIO** descartar `echo.type === 'unsupported' | 'system' | 'ephemeral'` y `isMetaSystemOrTestPhone(rawRecipient)` **ANTES** de llamar a `getOrCreateContact` / `getOrCreateConversation` / `saveMobileEchoMessage`. De lo contrario, un eco no soportado del saludo automático pondría `unreadCount: 0`, `isNewLead: false`, `firstResponseAt` y `humanTookOver: true`, apagando al Agente IA y escondiendo el lead.
+
+### 14.2 Filtrado de Prompt y Saludo Natural de Apertura (`prepareAiPromptMessages` + `resolveUnsupportedOpeningTurn`)
+Para que el Agente IA jamás lea el texto técnico `🔒 Mensaje temporal oculto...` como si lo hubiera escrito el cliente, pero **sí rescate leads nuevos** cuyo único mensaje inicial llegó bloqueado por `131051`:
+
+```typescript
+// src/lib/utils/crm-ai-session.ts
+import { isUnsupportedInboundPlaceholder } from '@/lib/utils/search-helpers';
+import type { CrmMessage, CrmMessageReferral } from '@/lib/types/crm';
+
+export interface PreparedAiPromptMessages {
+  hasPriorBotMessage: boolean;
+  hasPriorOutboundMessage: boolean;
+  alreadySentMediaUrls: string[];
+  conversationHistory: Array<{
+    role: 'client' | 'advisor_or_ai';
+    senderLabel?: string;
+    text: string;
+    timestamp?: string;
+  }>;
+  latestClientMessages: string[];
+  referral: CrmMessageReferral | null;
+  hasTrailingUnsupported: boolean;
+  audioCandidates: CrmMessage[];
+}
+
+export function prepareAiPromptMessages(params: {
+  recentMsgs: CrmMessage[];
+  assignedToName?: string | null;
+  initialReferral?: CrmMessageReferral | null;
+}): PreparedAiPromptMessages {
+  const { recentMsgs, assignedToName, initialReferral } = params;
+  const hasPriorBotMessage = recentMsgs.some((m) => m.senderType === 'bot');
+  const hasPriorOutboundMessage = recentMsgs.some((m) => m.direction === 'outbound');
+  const alreadySentMediaUrls = recentMsgs
+    .filter((m) => m.direction === 'outbound' && m.media?.url)
+    .map((m) => m.media!.url!);
+
+  const conversationHistory = recentMsgs
+    .filter((m) => !(m.direction === 'inbound' && isUnsupportedInboundPlaceholder(m.body)))
+    .map((m) => ({
+      role: m.direction === 'inbound' ? ('client' as const) : ('advisor_or_ai' as const),
+      senderLabel:
+        m.direction === 'inbound'
+          ? 'Cliente'
+          : m.senderType === 'bot'
+          ? 'Asistente IA'
+          : assignedToName || 'Asesor',
+      text: m.body || '',
+    }));
+
+  const latestClientMessages: string[] = [];
+  const audioCandidates: CrmMessage[] = [];
+  let referral: CrmMessageReferral | null = initialReferral || null;
+  let hasTrailingUnsupported = false;
+
+  for (let i = recentMsgs.length - 1; i >= 0; i--) {
+    const m = recentMsgs[i];
+    if (m.direction !== 'inbound') break;
+    if (m.referral && !referral) referral = m.referral;
+
+    if (isUnsupportedInboundPlaceholder(m.body)) {
+      hasTrailingUnsupported = true;
+      continue;
+    }
+    if (m.body && m.body !== '🎵 Nota de voz') {
+      latestClientMessages.unshift(m.body);
+    }
+    if (m.type === 'audio' && audioCandidates.length < 4) {
+      audioCandidates.push(m);
+    }
+  }
+
+  return {
+    hasPriorBotMessage,
+    hasPriorOutboundMessage,
+    alreadySentMediaUrls,
+    conversationHistory,
+    latestClientMessages,
+    referral,
+    hasTrailingUnsupported,
+    audioCandidates,
+  };
+}
+
+export function resolveUnsupportedOpeningTurn(params: {
+  prepared: PreparedAiPromptMessages;
+  audioPayloadsCount: number;
+  businessName: string;
+}): { shouldSkipTurn: boolean } {
+  const { prepared, audioPayloadsCount, businessName } = params;
+
+  // Caso B: El cliente envió un unsupported seguido de texto/audio real -> responder directo al contenido real
+  if (prepared.latestClientMessages.length > 0 || audioPayloadsCount > 0) {
+    return { shouldSkipTurn: false };
+  }
+
+  // Caso C: Conversación que ya tenía mensajes salientes previos recibe un unsupported aislado -> omitir turno IA
+  // (conservando unreadCount >= 1 para que el asesor humano lo revise sin que el bot interrumpa fuera de contexto)
+  if (prepared.hasPriorOutboundMessage || !prepared.hasTrailingUnsupported) {
+    return { shouldSkipTurn: true };
+  }
+
+  // Caso A: Chat nuevo cuyo único mensaje inicial fue bloqueado por 131051 -> bienvenida natural para destrabar el hilo
+  const headline = prepared.referral?.headline?.trim();
+  const safeBrand = businessName.trim() || 'nuestro equipo';
+  const instruction = headline
+    ? `[El cliente acaba de iniciar conversación desde nuestro anuncio "${headline}". Envíale un saludo cálido de bienvenida haciendo referencia natural a ese producto/anuncio y pregúntale amablemente cómo podemos ayudarle o qué especificaciones necesita, sin mencionar errores técnicos ni mensajes temporales.]`
+    : `[El cliente acaba de iniciar una conversación nueva por WhatsApp. Envíale un saludo cálido de bienvenida de parte de ${safeBrand} y pregúntale amablemente en qué producto o consulta podemos asesorarle hoy, sin mencionar errores técnicos ni mensajes temporales.]`;
+
+  prepared.latestClientMessages.push(instruction);
+  prepared.conversationHistory.push({
+    role: 'client',
+    senderLabel: 'Cliente',
+    text: instruction,
+  });
+
+  return { shouldSkipTurn: false };
+}
+```
 

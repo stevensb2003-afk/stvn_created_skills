@@ -843,10 +843,11 @@ useLayoutEffect(() => {
 ```
 Además, cuando se busca un `targetMessageId` que quedó agrupado dentro de un `ImageGridBubble`, cada celda del álbum expone `data-sub-message-id={subMsg.id}` para que `MessageList` pueda localizarla (`querySelector('[data-message-id="..."], [data-sub-message-id="..."]')`), centrarla en pantalla y aplicarle el anillo de resaltado temporal.
 
-### 6.3 Búsqueda Híbrida Intra-Chat (`ChatInSearchBar` + `GET /api/crm/messages/search`)
+### 6.3 Búsqueda Híbrida Intra-Chat y Global en Todo el Historial (`ChatInSearchBar` + `GET /api/crm/messages/search` con `searchTokens`)
 - **En RAM (`0 ms`)**: Filtra inmediatamente los mensajes ya cargados en `messages` (normalizando tildes con `normalizeSearchText`).
-- **En Servidor (`260 ms` debounce + `AbortController`)**: Llama a `GET /api/crm/messages/search?conversationId=${chatId}&q=${query}`, que escanea hasta `3,000` mensajes de la subcolección (`orderBy('createdAt', 'desc'), limit(3000)`) buscando coincidencias sin tildes en `body`, `media.filename`, `location.name` y `location.address`.
-- **Fusión Cronológica**: Combina IDs locales y remotos sin duplicados, ordenados de más antiguo a más reciente, posicionando el cursor en la coincidencia más reciente (`N de N`) y permitiendo navegar con `Enter` (anterior) y `Shift+Enter` (siguiente).
+- **Intra-Chat en Servidor (`260 ms` debounce + `AbortController`)**: Llama a `GET /api/crm/messages/search?conversationId=${chatId}&q=${query}`. Primero consulta el índice invertido de la subcolección `where('searchTokens', 'array-contains', primaryToken).orderBy('createdAt', 'desc').limit(500)` (`O(k)` instantáneo incluso en chats de `>10,000` mensajes) y, si obtiene `< 20` aciertos (ej. sub-cadena parcial o mensajes pre-backfill), aplica fallback sobre `orderBy('createdAt', 'desc').limit(3000)` evaluando `body`, `media.filename`, `location.name`, `location.address` y `referral`.
+- **Global en Barra Lateral (`collectionGroup('messages')` paginado)**: Sin `conversationId`, consulta todo el historial de mensajes con `where('searchTokens', 'array-contains', primaryToken).orderBy('createdAt', 'desc')` de `40` en `40` (`cursorDoc`) validando RBAC vivo sobre la conversación padre (ver **Sección 11.5**).
+- **Fusión Cronológica**: Combina IDs locales y remotos sin duplicados, ordenados de más antiguo a más reciente, posicionando el cursor en la coincidencia más reciente (`N de N`) y permitiendo navegar con `Enter` (anterior) y `Shift+Enter` (siguiente) hacia `useCrmMessages` Target Window Mode (`±30`).
 
 ---
 
@@ -916,10 +917,14 @@ export function getPhoneVariants(
 }
 ```
 
-### 7.2 Arquitectura de Mapas Singleton en `useCrmConversations`, `useCrmTags` y `useQuickReplies`
-1. **Mapas Dedicados en `useCrmConversations`**:
-   - Mantiene listeners `onSnapshot` compartidos a nivel de módulo (`inboxMap`, `assignedMap`, `operationalMap` / divisiones, `recentMap` [admin `limit(300)`], **`unreadMap` [admin `where('unreadCount', '>', 0), limit(300)` — garantiza que ningún chat sin leer quede oculto aunque tenga más de 300 chats recientes encima]**, `taggedMap` y `onDemandMap`).
-   - `fetchConversation({ id, phone, contactId })` busca **primero en `mergedChatsMap` en RAM (`0` lecturas Firestore)** cruzando `getPhoneVariants(phone)`; solo si no está en memoria consulta Firestore con todas las variantes y lo inyecta en `onDemandMap`.
+### 7.2 Arquitectura de Mapas Singleton Híbridos en `useCrmConversations`, `useCrmTags` y `useQuickReplies`
+1. **Mapas Dedicados RAM-Safe + Anti-Expulsión en `useCrmConversations` (`LIVE_LIMIT = 80`, ver Sección 11.2)**:
+   - Mantiene listeners `onSnapshot` ligeros a nivel de módulo (`inboxMap`, `assignedMap`, `operationalMap` / divisiones y `recentMap` [admin], cada uno acotado a `LIVE_LIMIT = 80`, ahorrando `~70%` de RAM y lecturas iniciales) combinados con **3 sockets anti-expulsión**:
+     - `unreadMap` (admin: `where('unreadCount', '>', 0), limit(150)`),
+     - `myUnreadMap` (vendedor: `where('assignedTo', '==', uid), where('unreadCount', '>', 0), orderBy('unreadCount', 'desc'), orderBy('lastMessageAt', 'desc'), limit(150)`),
+     - `myNewLeadsMap` (vendedor: `where('assignedTo', '==', uid), where('isNewLead', '==', true), orderBy('lastMessageAt', 'desc'), limit(150)`),
+     más los mapas secundarios bajo demanda (`historyMap` alimentado por `loadMoreTabHistory(scope)` de `50` en `50` con `startAfter`, `taggedMap` y `onDemandMap`). Ningún chat sin leer ni lead `NUEVO` de un asesor puede jamás desaparecer aunque su cartera supere miles de conversaciones.
+   - `fetchConversation({ id, phone, contactId })` busca **primero en `mergedChatsMap` en RAM (`0` lecturas Firestore)** cruzando `getPhoneVariants(phone)`; solo si no está en memoria consulta Firestore con todas las variantes respetando RBAC y lo inyecta en `onDemandMap`.
 2. **Singletons `useCrmTags` y `useQuickReplies`**:
    - Ambos hooks usan un `Set` de suscriptores a nivel de módulo (`tagSubscribers`, `qrSubscribers`) y una única suscripción `onSnapshot` compartida, evitando abrir decenas de listeners duplicados cuando se montan múltiples tarjetas o modales.
 
@@ -6123,3 +6128,271 @@ export function useCrmMobileBackLayer(isActive: boolean, onClose: () => void) {
   }, [isActive]);
 }
 ```
+
+---
+
+## 11. Motor Híbrido RAM-Safe de Visibilidad Garantizada, Anti-Expulsión en `"Míos"`, Filtros Indexados, Búsqueda Léxica Total, Preservación de `isNewLead` y Backfill Histórico (`v5.3`)
+
+> [!IMPORTANT]
+> **LECCIÓN DE PRODUCCIÓN (CERO CHATS PERDIDOS NI TRUNCADOS)**:
+> Un CRM comercial real supera rápidamente los `300` chats por vendedor en pocos días. Depender de un único listener `limit(300)` en RAM sin cursores `startAfter` ni sockets anti-expulsión provoca que leads reales desaparezcan de `"Míos"`, que los filtros omitan el historial y que el buscador de mensajes quede ciego más allá de unas horas. Todo proyecto construido o auditado con esta skill **DEBE** implementar las 6 capas siguientes.
+
+### 11.1 Los 7 Escenarios Críticos de Invisibilidad / Contaminación Resueltos de Raíz
+
+| # | Fallo Detectado en Operación Real | Causa Técnica Raíz | Blindaje Obligatorio en `v5.3` |
+| :-: | :--- | :--- | :--- |
+| **1** | **Chat creado desde anuncio pero vacío y con `unreadCount: 0`** | Meta envía `msg.type === 'unsupported'` (`Error 131051` por Mensajes Temporales activos en el celular del cliente o en el saludo del teléfono empresarial). Hacer `continue;` tras `getOrCreateConversation` dejaba un chat fantasma sin burbuja ni notificación. | Persistir siempre burbuja `UNSUPPORTED_INBOUND_PLACEHOLDER_PREFIX` + tarjeta `referral` (`msg.referral \|\| msg.context?.referral` + `welcomeMessageText`), `unreadCount: increment(1)`, Round-Robin y saludo natural del Agente IA ([Blueprint 04 Sección 14](./04-ai-automations-5-subtabs-spec.md)). |
+| **2** | **Eco móvil `unsupported` apaga la IA y limpia `unreadCount`** | En Coexistencia (`smb_message_echoes`), guardar un `echo` `unsupported` invocaba `saveMobileEchoMessage`, forzando `unreadCount: 0`, `isNewLead: false` y `humanTookOver: true`. | Descartar `echo.type === 'unsupported' \| 'system' \| 'ephemeral'` e `isMetaSystemOrTestPhone` (`+1555...`) **ANTES** de adquirir lock o llamar `getOrCreateContact` / `getOrCreateConversation` (`crm-webhook-echo-handler.ts`). |
+| **3** | **Chats sin leer o `NUEVOS` expulsados de `"Míos"`** | Un asesor con alto volumen supera `limit(300)` en 3–4 días; clientes antiguos o chats transferidos quedaban fuera de la ventana viva. | Bajar ventana base viva a `LIVE_LIMIT = 80` (`-70%` RAM) y añadir **2 sockets dedicados por vendedor**: `myUnreadMap` (`unreadCount > 0`) y `myNewLeadsMap` (`isNewLead == true`) + scroll infinito `loadMoreTabHistory` (`startAfter`, `50` por página). |
+| **4** | **`+ Nuevo Chat` o `Web Leads` invisibles desde el segundo 1** | Crear conversaciones salientes con `lastMessageAt: null` las enviaba al fondo absoluto de `orderBy('lastMessageAt', 'desc')`; transferir/tomar un chat antiguo solo actualizaba `updatedAt`. | **Prohibido `lastMessageAt: null`**. `createNewOutboundChat`, `takeConversation` y `transferConversation` escriben siempre `lastMessageAt: serverTimestamp()`. |
+| **5** | **Sincronización pasiva de ERP/POS desordena `"Todos"`** | Actualizar `updatedAt` en `crm_conversations` al sincronizar cédula/correo desde un ERP externo empujaba cientos de chats viejos al tope del fallback `orderBy('updatedAt', 'desc')`. | Escribir `externalSyncedAt: FieldValue.serverTimestamp()` (ej. `alegraSyncedAt`) sin tocar `updatedAt` ni `lastMessageAt`. |
+| **6** | **Filtros y buscadores truncados a memoria (`300` / `10` / `800`)** | Filtrar en RAM solo veía los últimos chats cargados; buscar contactos tenía `limit(10)` sin `ownerId`; buscar mensajes escaneaba solo `800` docs (~12h). | Hook `useCrmFilteredConversations` (`startAfter` de `50`), búsqueda de contactos RBAC paralela (`qOwn` + `qShared`, `limit(30)` + `startAfter` + `contactId in chunk30`) e índice invertido `messages.searchTokens` (`<= 45` tokens, `COLLECTION_GROUP`, `40` por página). |
+| **7** | **Chats contestados desde WhatsApp Móvil seguían marcados `NUEVO`** | Al responder de noche desde WA Móvil, el chat quedaba `isNewLead: false` pero `status: 'unassigned'`. A las `08:00 AM`, `runAutoAssignTransaction` asignaba dueño y sobreescribía ciegamente `isNewLead: true`. | Calcular `isNewLead: computeAutoAssignIsNewLead(chatData)` en Round-Robin + defensa en `docToChat` (`!answeredLastByHuman && !isOperational`) + limpieza `--only-new-leads`. |
+
+---
+
+### 11.2 Listeners Híbridos `LIVE_LIMIT = 80`, Sockets Anti-Expulsión y Scroll Infinito Real (`use-crm-conversations.ts` + `crm-conversation-lookup.ts`)
+
+```typescript
+// Fragmento estructural: src/hooks/crm/use-crm-conversations.ts
+export type TabHistoryScope = 'inbox' | 'mine' | 'all' | 'suppliers' | 'couriers' | 'team';
+
+const LIVE_LIMIT = 80;
+const HISTORY_PAGE = 50;
+
+// Orden de precedencia al fusionar mapas Singleton en recalculateAndNotify():
+// 1.º Cachés históricos/bajo demanda: historyMap -> taggedMap -> onDemandMap
+// 2.º Sockets en tiempo real (sobreescriben copias cacheadas con estado vivo):
+//     recentMap, inboxMap, assignedMap, operationalMap (o divisiones), unreadMap, myUnreadMap, myNewLeadsMap
+
+// Listeners anti-expulsión obligatorios para cada vendedor autenticado (assignedUnsubs):
+assignedUnsubs.push(
+  attachResilientListener(
+    query(convRef, where('assignedTo', '==', user.uid), orderBy('lastMessageAt', 'desc'), limit(LIVE_LIMIT)),
+    query(convRef, where('assignedTo', '==', user.uid), limit(LIVE_LIMIT)),
+    assignedMap,
+    'SellerAssigned',
+    'mine'
+  ),
+  attachResilientListener(
+    query(
+      convRef,
+      where('assignedTo', '==', user.uid),
+      where('unreadCount', '>', 0),
+      orderBy('unreadCount', 'desc'),
+      orderBy('lastMessageAt', 'desc'),
+      limit(150)
+    ),
+    null,
+    myUnreadMap,
+    'SellerMyUnread'
+  ),
+  attachResilientListener(
+    query(
+      convRef,
+      where('assignedTo', '==', user.uid),
+      where('isNewLead', '==', true),
+      orderBy('lastMessageAt', 'desc'),
+      limit(150)
+    ),
+    null,
+    myNewLeadsMap,
+    'SellerMyNewLeads'
+  )
+);
+```
+
+- **Helper Resiliente (`attachResilientListener` en `src/hooks/crm/crm-conversation-lookup.ts`)**:
+  - Lee cada documento con `docSnap.data({ serverTimestamps: 'estimate' })` y actualiza `scopePagination[scope].hasMore = snapshot.docs.length >= LIVE_LIMIT` mientras `cursor === null`.
+  - Si Firestore lanza `failed-precondition` (`code === 9` / índice en construcción), imprime la URL directa de creación del índice en consola (`logMissingIndexWarning`) y se suscribe automáticamente al `fallbackQuery` sin romper la bandeja.
+- **Paginación Histórica por Pestaña (`loadMoreTabHistory(scope)`)**:
+  - Cuando el usuario baja el scroll en cualquier pestaña (`inbox`, `mine`, `all` [solo admin], o subdivisiones operativas), ejecuta `getDocs` con `orderBy('lastMessageAt', 'desc')`: en el primer salto pide `LIVE_LIMIT + HISTORY_PAGE` (`130`) para cruzar limpiamente la frontera del socket vivo, y en los siguientes saltos usa `startAfter(state.cursor), limit(HISTORY_PAGE)` (`50`), inyectando resultados en `historyMap` hasta agotar el historial completo.
+
+---
+
+### 11.3 Mapeador Defensivo `docToChat`, Preservación de `isNewLead` tras Respuesta Móvil (`v4.24.1`) y Persistencia Atómica de `lastReferral`
+
+1. **Persistencia Atómica en `saveInboundMessage` (`crm-service.ts`)**:
+   - En el mismo `firestore.batch()` que inserta `messages/{msgId}`, actualiza `crm_conversations/{convId}` incluyendo `...(message.referral ? { lastReferral: message.referral } : {})` y reactivando `isNewLead: true` cuando una conversación comercial sin actividad reciente (`Date.now() - prevLastMsgMs > 7 * 24 * 60 * 60 * 1000`) vuelve a ingresar desde un anuncio de Meta (`Boolean(message.referral)`).
+   - En `<AdReferralPreview />`, si `referral.welcomeMessageText` existe, renderiza `"Saludo sugerido: «{referral.welcomeMessageText}»"` justo encima del texto/aviso `🔒 Mensaje temporal...` para darle contexto completo al asesor.
+2. **Funciones Puras de Integridad `isNewLead` (`src/lib/utils/crm-conversation-mapper.ts`)**:
+
+```typescript
+// src/lib/utils/crm-conversation-mapper.ts
+export function computeAutoAssignIsNewLead(chatData: Record<string, any>): boolean {
+  const hasPriorHumanReply =
+    Boolean(chatData.firstResponseAt) ||
+    chatData.humanTookOver === true ||
+    chatData.lastMessageSender === 'mobile' ||
+    chatData.lastMessageSender === 'agent';
+
+  const isUnansweredReopenedLead =
+    chatData.isNewLead === true &&
+    chatData.lastMessageSender === 'client' &&
+    Number(chatData.unreadCount || 0) > 0;
+
+  return !hasPriorHumanReply || isUnansweredReopenedLead;
+}
+
+export function isStaleNewLeadConversation(data: Record<string, any>): boolean {
+  if (data.isNewLead !== true) return false;
+  if (
+    data.isOperational === true ||
+    data.isSupplier === true ||
+    data.isCourier === true ||
+    data.isInternal === true
+  ) {
+    return true;
+  }
+  if (data.lastMessageSender === 'mobile' || data.lastMessageSender === 'agent') {
+    return true;
+  }
+  if (
+    Boolean(data.firstResponseAt) &&
+    Number(data.unreadCount || 0) === 0 &&
+    data.aiHandling !== true &&
+    data.aiPausedByEscalation !== true
+  ) {
+    return true;
+  }
+  return false;
+}
+
+// Dentro de docToChat(id, data):
+const isOperational =
+  data.isOperational === true ||
+  data.isSupplier === true ||
+  data.isInternal === true ||
+  data.isCourier === true;
+const answeredLastByHuman =
+  data.lastMessageSender === 'mobile' || data.lastMessageSender === 'agent';
+const unread = answeredLastByHuman ? 0 : Math.max(0, Number(data.unreadCount || 0));
+
+const isNewLead =
+  !isOperational &&
+  !answeredLastByHuman &&
+  (data.isNewLead === true ||
+    (data.isNewLead !== false &&
+      !data.firstResponseAt &&
+      data.humanTookOver !== true &&
+      (status === 'assigned' ||
+        (status === 'unassigned' && unread > 0) ||
+        data.aiHandling === true ||
+        data.aiPausedByEscalation === true)));
+```
+
+---
+
+### 11.4 Filtros Históricos Indexados en Servidor (`useCrmFilteredConversations.ts`), Vendedores Admin y Multiplexación en `ChatList`
+
+1. **Hook `useCrmFilteredConversations` (`FILTER_PAGE_SIZE = 50`, `MIN_MATCHES_PER_ADVANCE = 20`, `MAX_ADVANCE_HOPS = 3`)**:
+   - Se activa cuando `quickFilter !== null || selectedTagIds.length > 0 || (activeTab === 'all' && selectedSellerIds.length > 0)`.
+   - Construye sub-queries acotadas por alcance RBAC (`inbox` → `status == 'unassigned'`; `mine` o vendedor no-admin → `assignedTo == userUid`; `all` + `1` vendedor → `assignedTo == sellerId`; múltiples vendedores → hasta `15` streams paralelos; múltiples etiquetas → hasta `10` streams `where('tagIds', 'array-contains', tagId)`) combinadas con el predicado del chip rápido (`aiPausedByEscalation == true`, `aiHandling == true`, `isDistributor == true`, `isNewLead == true`, o `unreadCount > 0` con `orderBy('unreadCount', 'desc'), orderBy('lastMessageAt', 'desc')`).
+   - **Protección Anti-Condición de Carrera y Liberación de RAM**: Usa `const seq = ++requestSeqRef.current` descartando respuestas obsoletas si el usuario cambia rápido de filtro/pestaña, y ejecuta `poolMapRef.current.clear()` al quitar el filtro para devolver la RAM inmediatamente a su nivel base.
+2. **Hidratación Completa de Vendedores para Administradores (`computeUniqueSidebarSellers`)**:
+   - Consulta `users` filtrando por `userHasCrmChatAccess(u)` y fusiona con cualquier `assignedTo` presente en memoria, garantizando que en el filtro de vendedores aparezcan todos los asesores aunque no tengan chats dentro de los últimos `80` globales.
+3. **Multiplexación Unificada de Scroll Infinito en `ChatSidebar` → `ChatList`**:
+   - `ChatSidebar` enruta dinámicamente `hasMoreRemote` / `onLoadMoreRemote` hacia: `1)` `loadMoreContactSearch` si hay búsqueda de contacto activa, `2)` `loadMoreFiltered` si hay filtros activos, o `3)` `loadMoreTabHistory(scopeKey)` en navegación normal; además `ChatList` renderiza botones explícitos de respaldo (*"Buscar más atrás en el historial"* / *"Cargar chats más antiguos"*) cuando la altura de lista no genera scrollbar.
+
+---
+
+### 11.5 Búsqueda Total sin Techo en Contactos (`identificationNumber`) y Mensajes (`messages.searchTokens` `<= 45` Tokens)
+
+```typescript
+// src/lib/utils/search-helpers.ts — Tokenizador léxico acotado para subcolecciones messages
+const STOPWORDS_ES = new Set([
+  'de', 'la', 'el', 'en', 'los', 'las', 'un', 'una', 'por', 'con', 'para', 'del', 'al',
+  'que', 'se', 'es', 'no', 'si', 'ya', 'lo', 'le', 'su', 'mi', 'me', 'te', 'tu',
+]);
+
+export function generateMessageSearchTokens(
+  body?: string | null,
+  extraText?: string | null
+): string[] {
+  const chunks: string[] = [];
+  if (body && !isUnsupportedInboundPlaceholder(body)) {
+    const normBody = normalizeSearchQuery(body);
+    if (!IGNORED_MESSAGE_SEARCH_BODIES.has(normBody)) chunks.push(normBody);
+  }
+  if (extraText) chunks.push(normalizeSearchQuery(extraText));
+  if (chunks.length === 0) return [];
+
+  const words = Array.from(
+    new Set(
+      chunks
+        .join(' ')
+        .split(/[^\p{L}\p{N}]+/u)
+        .filter((w) => w.length >= 2 && !STOPWORDS_ES.has(w))
+        .map((w) => w.slice(0, 24))
+    )
+  ).slice(0, 25);
+
+  const tokens = new Set<string>();
+  for (const w of words) tokens.add(w); // Pase 1: palabras completas
+  for (const w of words) {              // Pase 2: prefijos 2..8 chars hasta tope 45
+    const maxP = Math.min(w.length, 8);
+    for (let len = 2; len <= maxP; len++) {
+      if (tokens.size >= 45) break;
+      tokens.add(w.slice(0, len));
+    }
+    if (tokens.size >= 45) break;
+  }
+  return Array.from(tokens).slice(0, 45);
+}
+
+export function pickPrimarySearchToken(rawQuery: string): {
+  primaryToken: string | null;
+  allNormalizedWords: string[];
+} {
+  const allWords = normalizeSearchQuery(rawQuery)
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((w) => w.length >= 2);
+  if (allWords.length === 0) return { primaryToken: null, allNormalizedWords: [] };
+  const useful = allWords.filter((w) => !STOPWORDS_ES.has(w));
+  const pool = useful.length > 0 ? useful : allWords;
+  const longest = pool.reduce((a, b) => (b.length > a.length ? b : a), pool[0]);
+  return { primaryToken: longest.slice(0, 8), allNormalizedWords: allWords };
+}
+```
+
+- **Los 6 Puntos Obligatorios de Escritura de `searchTokens`**:
+  1. `saveInboundMessage` (`body` + `referral.{headline,body,welcomeMessageText}` + `media.filename` + `location.{name,address}`),
+  2. `saveMobileEchoMessage` (`smb_message_echoes`),
+  3. `POST /api/crm/messages/send` (envíos de asesores y callback de video comprimido),
+  4. `crm-ai-conversation-runner.ts` (burbujas de texto y activos multimedia/PDF del Agente IA),
+  5. `crm-ai-session-state.ts` (mensaje automático de cierre/escalación por límite de turnos),
+  6. `sendWhatsappTemplateAction` / despachadores de plantillas WABA y planes PDF.
+- **Búsqueda Paginada de Contactos (`use-crm-sidebar-search.ts`, `CONTACT_SEARCH_PAGE = 30`)**:
+  - **Admin**: `where('searchPrefixes', 'array-contains', primaryPrefix), orderBy('lastContactAt', 'desc'), startAfter?(cursor), limit(30)`.
+  - **Vendedor (`!isAdmin`)**: Ejecuta `2` cursores paralelos (`qOwn` con `where('ownerId', '==', uid)` + `qShared` para sin asignar / operativos) para que contactos de otros asesores jamás oculten coincidencias propias, y resuelve conversaciones en lotes `where('contactId', 'in', chunk30)` (`1` query por bloque en lugar de `30` queries sueltas).
+- **Endpoint `GET /api/crm/messages/search` (`GLOBAL_PAGE_LIMIT = 40`, `SCAN_BATCH_SIZE = 80`, `MAX_SCAN_HOPS = 4`)**:
+  - Consulta `firestore.collectionGroup('messages').where('searchTokens', 'array-contains', primaryToken).orderBy('createdAt', 'desc')` avanzando con `startAfter(runningCursorSnap)` y conservando `lastConsumedDoc` cuando llena `40` resultados a mitad de lote para no saltar ninguna coincidencia en *"Cargar coincidencias más antiguas"*.
+  - **RBAC Vivo sobre la Conversación Padre**: Hidrata en lotes de `50` (`firestore.getAll`) los documentos padre `crm_conversations/{convId}` y verifica propiedad actual (`isCrmAdmin || conv.assignedTo === caller.uid || conv.status === 'unassigned' || conv.isOperational`), permitiendo buscar el `100%` de los mensajes previos de un chat transferido sin congelar `assignedTo` en cada mensaje.
+
+---
+
+### 11.6 Pipeline Administrativo y CLI de Reparación e Indexación Histórica (`runCrmHistoryRepairAndBackfill`)
+
+Incluye el servicio `src/lib/services/crm-history-backfill-service.ts`, el endpoint protegido `POST /api/crm/admin/backfill-index` (`requireCrmAdmin: true`) y el script `scripts/backfill-crm-history.ts` con **`dryRun = true` por defecto** y cola `writeBatch` (`MAX_BATCH_OPS = 400`):
+
+1. **Modo Rápido `--only-new-leads` (`onlyNewLeads: true`)**: Consulta `where('isNewLead', '==', true)`, evalúa `isStaleNewLeadConversation(data)` y limpia únicamente `{ isNewLead: false }` sin tocar `lastMessageAt` ni `updatedAt` (preserva intacto el orden de todas las bandejas).
+2. **Barrido Paginado Completo (`--apply`)**:
+   - Elimina conversaciones/contactos fantasma vacíos de números de prueba de Meta (`isMetaSystemOrTestPhone` `+1555...`).
+   - Repara conversaciones con `lastMessageAt == null` → `updatedAt || createdAt`.
+   - Limpia falsos positivos históricos de `isNewLead`.
+   - Rescata leads comerciales recientes (`<= 14` días) que habían quedado con `messages` vacío por `131051`, inyectando la burbuja `UNSUPPORTED_INBOUND_PLACEHOLDER_PREFIX` + `unreadCount: Math.max(1, unreadCount)` + `isNewLead: true`.
+   - Indexa retroactivamente `messages.searchTokens` y `crm_contacts.searchPrefixes` (incluyendo `identificationNumber`).
+3. **Secuencia Operativa Segura en Producción**:
+   ```bash
+   # 1. Desplegar índices compuestos y esperar a estado Enabled en Firebase Console
+   firebase deploy --only firestore:indexes
+
+   # 2. Auditar conteos en simulación sin mutar datos (dryRun = true)
+   npx tsx scripts/backfill-crm-history.ts
+
+   # 3. Aplicar reparación e indexación por lotes (<= 400 ops/batch)
+   npx tsx scripts/backfill-crm-history.ts --apply
+
+   # (Opcional) Limpieza exclusiva ultrarrápida de etiquetas NUEVO obsoletas
+   npx tsx scripts/backfill-crm-history.ts --only-new-leads --apply
+   ```

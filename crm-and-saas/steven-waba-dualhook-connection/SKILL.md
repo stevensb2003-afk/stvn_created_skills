@@ -1,12 +1,12 @@
 ---
 name: steven-waba-dualhook-connection
 description: >
-  Arquitectura maestra universal v5.2 (autocontenida y lista para venta/expansión multi-cliente), guía ejecutable paso a paso desde Paso Cero con provisioner CLI automatizado ('scripts/provision-firebase-crm.mjs'), bóveda criptográfica Write-Only en Frontend (8 tarjetas unificadas incluyendo Hacienda CR), motor nativo de Facturación Electrónica Costa Rica DGT v4.4 ('XAdES-EPES' + validación offline 'XSD v4.4' sin PHP/AGPL), ingeniería de eficiencia extrema en Firestore NoSQL + Gemini Implicit Prefix Caching (-90% tokens) y auditoría forense automatizada ('scripts/audit-crm-forensic.mjs') para construir, desplegar en flujo GitHub 2-ramas ('demo' -> 'main' Multi-Cliente), extender con módulos comerciales por plan y blindar un CRM Omnicanal (WhatsApp Business Dualhook Coexistencia + Instagram Direct + Facebook Messenger nativos con Unificación de Identidad 360°).
-  Incluye: Fase 0 Automatizada vía CLI/REST ('gcloud', 'firebase', App Check reCAPTCHA v3, Firestore Native, Auth Email+Google, Storage y Claims 'platformDev'), Fase 0.5 con Wizard Interactivo Paso a Paso de 4 Rondas ('ask_question') antes de codificar, Topología 2-Ramas ('demo' auto-deploy -> PR a 'main' -> deploy masivo reciclado con mismas reglas/índices por cliente), Sistema de Diseño White-Label desde Frontend ('--primary', '--secondary', '--tertiary', 8 paletas WCAG AA/AAA, Zero-FOUC ThemeInjectorProvider, logo/favicon WebP), Iconografía Anti-IA ('@phosphor-icons/react' + '<AppIcon />'), RBAC en 3 Planos ('platformDev' Custom Claim vs Owner/Admin vs 'roles/{roleId}' dinámico con catálogo único 'CRM_PERMISSIONS' y cero correos/roles quemados), Invitaciones Corporativas por Subdominio (Agencia o Cliente SPF/DKIM/DMARC con tokens SHA-256 72h), Panel '/developer' de Licenciamiento Modular + Webhook HMAC (Stripe/Tilopay/Paddle), Agente IA White-Label con Veto Estricto de Mundo Cerrado (solo giro del negocio y documentación oficial; Notas Inteligentes consolidadas 2h, Circuit Breaker por scope y ventanas conscientes de madrugada), POS Universal de 4 Modos (UI completa con borradores Cloud 'crm_pos_drafts', match 100% E.164, despacho PDF >24h, Hacienda CR v4.4 Nativo y cápsula ERP/Alegra con Ledger idempotente), Suite Operativa 100% Local de Entregas/Visitas/Proyectos/Garantías, Catálogo Maestro + Exposición Web + Plantillas Excel 3 Pasos/Edición Masiva ERP-agnóstica, Add-Ons por Plan (Aprobaciones Descuento B2C + Push, Portal Mayorista B2B, Prospectos Web, Caja Bimoneda/Links/Transferencias), Blindaje PWA/Radix/Workbox, 14 blueprints modulares en './references/', 8 scripts CLI en './scripts/', esquemas XSD oficiales en './resources/xsd/v4.4/' y Checklist Forense de 52 puntos.
-  Actívalo cuando el usuario escriba "/steven-waba-dualhook-connection", "/waba-dualhook", "/dualhook-crm", "/whatsapp-crm-setup", "/waba-audit", "/facturacion-hacienda", "/hacienda-v44", o solicite crear desde cero, aprovisionar para un nuevo cliente, conectar WhatsApp/Instagram/Messenger, activar catálogo/entregas/POS/portal B2B/Hacienda Costa Rica v4.4, volver SaaS, extender, optimizar o auditar un CRM Omnicanal con Dualhook / Meta Cloud API.
+  Arquitectura maestra universal v5.4 (autocontenida y lista para venta/expansión multi-cliente), guía ejecutable paso a paso desde Paso Cero con Wizard Interactivo de 5 Rondas (Ronda 0 + Rondas 1..4) y provisioner CLI automatizado ('scripts/provision-firebase-crm.mjs'), bóveda criptográfica Write-Only en Frontend (8 tarjetas unificadas incluyendo Hacienda CR), Catálogo Maestro Parametrizable por Cliente ('crm_settings/catalog_config': Origen, Sub-series, Regla SKU, Matriz Cuentas Contables y Buscador CABYS en vivo desde API Hacienda CR + favoritos offline), Ingeniería de Documentación '<slug>_ai_agent_docs/' con doble TOC 'Lxxx-Lyyy' + Poda Física RBAC Pre-LLM + Streaming SSE 'Click-Pap' + Serialización Token-Densa (-65% a -90%) y Circuit Breaker Multi-Ámbito, motor nativo de Facturación Electrónica Costa Rica DGT v4.4 ('XAdES-EPES' + validación offline 'XSD v4.4' sin PHP/AGPL), Blindaje Anti-Pérdida de Mensajes Efímeros/CTWA ('131051 unsupported') + Sidebar Híbrida Anti-Evicción ('LIVE_LIMIT = 80' + sockets 'myUnreadMap'/'myNewLeadsMap') + Búsqueda Histórica Total ('messages.searchTokens') y auditoría forense automatizada ('scripts/audit-crm-forensic.mjs') para construir (incluyendo Protocolo Multi-Agente por Olas), desplegar en flujo GitHub 2-ramas ('demo' -> 'main' Multi-Cliente), extender con módulos comerciales por plan y blindar un CRM Omnicanal (WhatsApp Business Dualhook Coexistencia + Instagram Direct + Facebook Messenger nativos con Unificación de Identidad 360°).
+  Incluye: Ronda 0 + Fase 0 Automatizada vía CLI/REST ('gcloud', 'firebase', App Check reCAPTCHA v3, Firestore Native, Auth Email+Google, Storage y Claims 'platformDev'), Fase 0.5 con Wizard Interactivo Paso a Paso ('ask_question') antes de codificar, Protocolo de Orquestación por Olas para Carbon/Subagentes, Topología 2-Ramas ('demo' auto-deploy -> PR a 'main' -> deploy masivo reciclado con mismas Rules e Índices por cliente), Sistema de Diseño White-Label desde Frontend ('--primary', '--secondary', '--tertiary', 8 paletas WCAG AA/AAA, Zero-FOUC ThemeInjectorProvider, logo/favicon WebP/SVG adaptativo y Tooltip Portal global 'z-[9999]'), Iconografía Anti-IA ('@phosphor-icons/react' + '<AppIcon />'), RBAC en 3 Planos ('platformDev' Custom Claim vs Owner/Admin vs 'roles/{roleId}' dinámico con catálogo único 'CRM_PERMISSIONS' y cero correos/roles quemados), Invitaciones Corporativas por Subdominio (Agencia o Cliente SPF/DKIM/DMARC con tokens SHA-256 72h), Panel '/developer' de Licenciamiento Modular + Webhook HMAC (Stripe/Tilopay/Paddle), Agente IA White-Label con Veto Estricto de Mundo Cerrado + Apertura Inteligente en 3 Casos ante '131051 unsupported' ('prepareAiPromptMessages' + 'resolveUnsupportedOpeningTurn', Notas Inteligentes consolidadas 2h, Circuit Breaker por scope y ventanas conscientes de madrugada), Copiloto IA de Ayuda Streaming con Poda RBAC ('crm_help_chats'), Sidebar Híbrida sin Techo ('LIVE_LIMIT = 80' + sockets anti-evicción por asesor + 'loadMoreTabHistory' 'startAfter', filtros server-indexed 'useCrmFilteredConversations', búsqueda paralela RBAC en contactos + cédula/NIT e historial completo 'collectionGroup(messages)' con 'searchTokens' y validación RBAC viva), Round-Robin matutino que preserva respuestas desde WhatsApp Móvil ('computeAutoAssignIsNewLead') + backfill idempotente ('runCrmHistoryRepairAndBackfill'), POS Universal de 4 Modos (UI completa con borradores Cloud 'crm_pos_drafts', reglas 'PosPaymentMethodRule', match 100% E.164, despacho PDF >24h, Hacienda CR v4.4 Nativo y cápsula ERP/Alegra con Ledger idempotente), Suite Operativa 100% Local de Entregas/Visitas/Proyectos/Garantías, Catálogo Maestro Parametrizable + Buscador CABYS API Hacienda + Cuentas Contables + Exposición Web + Plantillas Excel 3 Pasos/Edición Masiva ERP-agnóstica, Add-Ons por Plan (Aprobaciones Descuento B2C + Push, Portal Mayorista B2B con 'admin_preview' Zero-Impersonation, Prospectos Web, Caja Bimoneda/Links/Transferencias), Blindaje PWA/Radix/Workbox, 15 blueprints modulares en './references/', 8 scripts CLI en './scripts/', esquemas XSD oficiales en './resources/xsd/v4.4/' y Checklist Forense de 60 puntos.
+  Actívalo cuando el usuario escriba "/steven-waba-dualhook-connection", "/waba-dualhook", "/dualhook-crm", "/whatsapp-crm-setup", "/waba-audit", "/facturacion-hacienda", "/hacienda-v44", o solicite crear desde cero, aprovisionar para un nuevo cliente, conectar WhatsApp/Instagram/Messenger, activar catálogo/CABYS/cuentas contables/entregas/POS/portal B2B/Hacienda Costa Rica v4.4, diseñar agentes IA eficientes, volver SaaS, extender, optimizar o auditar un CRM Omnicanal con Dualhook / Meta Cloud API.
 ---
 
-# Protocolo Maestro Universal v5.2: CRM Omnicanal Modular Sellable + Suite Comercial Activable + Facturación Hacienda CR v4.4 (`steven-waba-dualhook-connection`)
+# Protocolo Maestro Universal v5.4: CRM Omnicanal Modular Sellable + Catálogo Parametrizable + Arquitectura IA Token-Densa + Facturación Hacienda CR v4.4 (`steven-waba-dualhook-connection`)
 
 Este skill define el estándar completo e **100% autocontenido** de ingeniería de producción para diseñar, aprovisionar desde terminal, construir desde **carpeta vacía (`crm-from-scratch`)**, expandir mediante **2 ramas GitHub (`demo` → `main` Multi-Cliente)** reutilizando al 100% las mismas `firestore.rules`, `storage.rules` e `firestore.indexes.json`, operar como **App Autónoma por Cliente, Módulo Integrado o SaaS Multi-Tenant**, y auditar un **CRM Omnicanal** sobre **WhatsApp Dualhook (`https://api.dualhook.com/v25.0`, Coexistencia `smb_message_echoes`)** + **Instagram Direct & Facebook Messenger nativos (`https://graph.facebook.com/v25.0`)**.
 
@@ -18,12 +18,51 @@ Este skill define el estándar completo e **100% autocontenido** de ingeniería 
 ## 0. FASE 0 AUTOMATIZADA (`CLI + REST PROVISIONING`): Bootstrap de Proyecto Firebase, APIs, App Check & Claims Día 0
 
 > [!CAUTION]
-> **REGLA DE HIERRO — PROHIBIDO ESCRIBIR CÓDIGO SIN INFRAESTRUCTURA LISTA (`Blaze + Native + Auth + Storage + App Check`)**:
+> **REGLA DE HIERRO — RONDA 0 + INFRAESTRUCTURA LISTA (`Blaze + Native + Auth + Storage + App Check`)**:
 > Este CRM **NO** funciona sobre bases de datos SQL (PostgreSQL, MySQL, Supabase), ni sobre *Firestore in Datastore Mode*, ni con exportación estática (`output: 'export'`), ni en Cloudflare Edge Runtime puro, ni en el plan gratuito **Spark** de Firebase (bloquea egress hacia Dualhook/Meta/IA y Cloud Functions v2).
-> **En lugar de obligar al usuario a configurar pantalla por pantalla en la consola Firebase, el agente EJECUTA primero el aprovisionador automatizado incluido en esta skill:**
+> **En un proyecto nuevo (`crm-from-scratch`) o alta de cliente, el agente NUNCA adivina el Project ID ni escribe código antes de completar:**
+> 1. **`Ronda 0` (`ask_question` inicial)** para capturar identidad de la instancia (`demo` vs `cliente` vs `standalone`), `PROJECT_ID` Firebase, correo `platformDev`, país fiscal/moneda/zona horaria.
+> 2. **Ejecución del aprovisionador automatizado** incluido en esta skill:
 > ```bash
-> node scripts/provision-firebase-crm.mjs --project <PROJECT_ID> --region nam5 --owner-email <TU_CORREO_DEV> [--dry-run]
+> node scripts/provision-firebase-crm.mjs --project <PROJECT_ID> --region <REGION> --role <demo|client> --dev-emails <TU_CORREO_DEV> --fiscal-code-mode <cabys_cr_api|custom_tax_code|disabled> --sku-mode <prefix_origin_sub_seq|prefix_seq|manual_free> --seed [--dry-run]
 > ```
+
+### 0.0 Ronda 0 Obligatoria — Identidad de Instancia, Firebase y Localización Base (`ask_question`)
+Al arrancar desde carpeta vacía (`MODO A`) o dar de alta un cliente nuevo, lanza primero esta **Ronda 0** antes de correr `provision-firebase-crm.mjs`:
+```json
+{
+  "questions": [
+    {
+      "question": "1/3 · ¿Qué rol cumplirá este proyecto Firebase que vamos a inicializar o conectar?",
+      "is_multi_select": false,
+      "options": [
+        "(Recommended) Proyecto Base Demo / Laboratorio (rama 'demo' para validar nuevas funciones y servir como vitrina comercial)",
+        "Cliente Nuevo sobre Base Existente (clona instancia de producción en deploy/clients.manifest.json reciclando Rules e Índices)",
+        "Instancia Única Standalone (1 solo negocio sin flujo multi-cliente)"
+      ]
+    },
+    {
+      "question": "2/3 · ¿Cómo preparamos el Proyecto Firebase (PROJECT_ID) y las credenciales del Platform Developer?",
+      "is_multi_select": false,
+      "options": [
+        "(Recommended) Crear proyecto nuevo vía CLI (pedir al usuario PROJECT_ID deseado, display-name, correo owner/platformDev y región)",
+        "Vincular proyecto Firebase ya existente (pedir PROJECT_ID actual y correo platformDev para verificar 7/7 y sembrar configuración)"
+      ]
+    },
+    {
+      "question": "3/3 · ¿Qué país fiscal, moneda base y código tributario de catálogo aplican a esta instancia?",
+      "is_multi_select": false,
+      "options": [
+        "(Recommended) Costa Rica (₡ / $, timezone America/Costa_Rica + Buscador CABYS en vivo desde API Hacienda)",
+        "México ($ MXN, timezone America/Mexico_City + ClaveProdServ opcional)",
+        "Colombia ($ COP, timezone America/Bogota + código fiscal personalizado)",
+        "Internacional / Genérico ($ USD + código fiscal desactivado o personalizado)"
+      ]
+    }
+  ]
+}
+```
+*(Si el usuario elige crear/vincular proyecto, pídele en texto directo el `PROJECT_ID`, `display-name` y `owner-email` antes de correr el script.)*
 
 ### 0.1 Qué Automatiza `scripts/provision-firebase-crm.mjs` vs Qué Requiere 1 Clic Humano Irreducible
 1. **Automatizado al 100% por CLI/REST (`gcloud` + `firebase-tools` + REST APIs oficiales):**
@@ -168,12 +207,12 @@ Antes de escribir la Fase 1 de aplicación, imprime el tablero tras correr `scri
 }
 ```
 
-#### Ronda 4 — Módulos Comerciales Activables por Plan (Entregas Locales, Catálogo/Excel/Web, B2B/Precios/Caja) & Frontera del Agente IA
+#### Ronda 4 — Módulos Comerciales, Catálogo Parametrizable (Origen/CABYS/Cuentas/SKU) & Frontera del Agente IA
 ```json
 {
   "questions": [
     {
-      "question": "1/3 · ¿Cómo operará el módulo de Entregas, Visitas Técnicas, Proyectos Multi-Día y Garantías?",
+      "question": "1/4 · ¿Cómo operará el módulo de Entregas, Visitas Técnicas, Proyectos Multi-Día y Garantías?",
       "is_multi_select": false,
       "options": [
         "(Recommended) Modo 100% Local en el CRM (Firestore SSOT autónomo con folios ETG/VIS/PROY/GAR, calendario/tabla y ruteo GPS sin sistemas externos)",
@@ -182,7 +221,7 @@ Antes de escribir la Fase 1 de aplicación, imprime el tablero tras correr `scri
       ]
     },
     {
-      "question": "2/3 · ¿Qué módulos extra de Catálogo, Web, Precios, Mayoristas y Caja deseas activar según el plan del cliente?",
+      "question": "2/4 · ¿Qué módulos extra de Catálogo, Web, Precios, Mayoristas y Caja deseas activar según el plan del cliente?",
       "is_multi_select": true,
       "options": [
         "(Recommended) Catálogo Maestro (catalog_master): SKUs, márgenes, Plantillas Excel (.xlsx), Actualización en 3 Pasos y Hoja Masiva 100% ERP-agnóstica",
@@ -193,7 +232,17 @@ Antes de escribir la Fase 1 de aplicación, imprime el tablero tras correr `scri
       ]
     },
     {
-      "question": "3/3 · ¿Cómo se configurará el Prompt y las Reglas de Dominio del Agente IA Comercial?",
+      "question": "3/4 · ¿Qué campos y reglas del Catálogo Maestro se encenderán en crm_settings/catalog_config para este cliente? (Inventariable/No-Inv/Servicio siempre activos)",
+      "is_multi_select": true,
+      "options": [
+        "(Recommended) Buscador CABYS en vivo (API Hacienda CR + autocompletado % IVA + favoritos offline)",
+        "(Recommended) Catálogo y Matriz de Cuentas Contables por categoría/tipo (/products/settings)",
+        "(Recommended) Segmentación por Origen configurables (Importado / Local / Custom) + Generador SKU Estructurado con detector de huecos",
+        "Sub-series por categoría (100/200) y Códigos de Barras (EAN/UPC)"
+      ]
+    },
+    {
+      "question": "4/4 · ¿Cómo se configurará el Prompt y las Reglas de Dominio del Agente IA Comercial?",
       "is_multi_select": false,
       "options": [
         "(Recommended) Prompt White-Label limpio para este negocio + Veto Estricto de Mundo Cerrado (PROHIBIDO responder temas ajenos al negocio o fuera de la documentación oficial; Notas Inteligentes consolidadas 2h + Prefix Caching -90% + Ventana Consciente de Madrugada)",
@@ -204,24 +253,24 @@ Antes de escribir la Fase 1 de aplicación, imprime el tablero tras correr `scri
 }
 ```
 
-### Matriz de Reacción Automática tras Completar las 4 Rondas:
-1. **Ronda 1 (`demo` → `main`)**: Crea `deploy/clients.manifest.json`, `.github/workflows/deploy-demo.yml` y `.github/workflows/deploy-clients.yml` reusando idénticamente `firestore.rules`, `storage.rules` y `firestore.indexes.json` ([Blueprint 10](./references/10-new-module-extension-and-multiclient-ops.md)).
+### Matriz de Reacción Automática tras Completar las 5 Rondas (Ronda 0 + Rondas 1..4):
+1. **Ronda 0 + Ronda 1 (`demo` → `main`)**: Corre `scripts/provision-firebase-crm.mjs` con `--fiscal-code-mode` y `--sku-mode`, crea `deploy/clients.manifest.json`, `.github/workflows/deploy-demo.yml` y `.github/workflows/deploy-clients.yml` reusando idénticamente `firestore.rules`, `storage.rules` y `firestore.indexes.json` ([Blueprint 10](./references/10-new-module-extension-and-multiclient-ops.md)).
 2. **Ronda 2 (`IG + FB + Identity Merge` + `Theme Studio`)**: Implementa adaptadores nativos `meta-social-client.ts`, auto-discovery de 1 token (`/api/crm/admin/meta-social/discover`), `resolveOmnichannelContact(channelKeys)` y fusión 360° ([Blueprint 07](./references/07-meta-omnichannel-ig-messenger-identity.md)), más `ThemeInjectorProvider` + `SettingsBranding` + `<AppIcon />` con `@phosphor-icons/react` ([Blueprint 09](./references/09-global-banners-theming-and-help-copilot.md)).
 3. **Ronda 2 (`POS Modo A/B1/B2/C`)**: Construye la UI universal del POS (multiplicador `+1/+5/+10`, borradores Cloud `crm_pos_drafts`, match `100% E.164`, despacho PDF `<24h` y `>24h`) conectada al adaptador elegido: `FirestoreNativePosAdapter` (`Modo A`), `HaciendaCrNativePosAdapter` (`Modo B1`, ejecutando [Blueprint 11](./references/11-hacienda-cr-v44-pos-fiscal-engine.md) + `./scripts/sign-and-validate-v44.mjs` + `./resources/xsd/v4.4/`), `ErpFiscalPosAdapter` (`Modo B2`, activando la cápsula de Ledger de Stock e idempotencia de [Blueprint 06 Sección 10](./references/06-pos-point-of-sale-global-spec.md)) o `CustomWebhookPosAdapter` (`Modo C`).
-4. **Ronda 3 (`Subdomain Invites` + `/developer` + `Help Copilot`)**: Genera `SettingsRolesBuilder`, `crm_invitations` SHA-256 72h, `/accept-invite`, `/developer` + `crm_system/tenant_license` + webhook HMAC ([Blueprint 08](./references/08-rbac-roles-branded-invites-and-licensing.md)), `GlobalAnnouncementBanner` + `/config/app_version` + `POST /api/crm/help-copilot/ask` sobre `*_ai_agent_docs` ([Blueprint 09](./references/09-global-banners-theming-and-help-copilot.md)).
-5. **Ronda 4 (`Entregas Locales`, `Catálogo/Excel/Web`, `Add-Ons B2B/Precios/Caja` & `IA Mundo Cerrado`)**:
+4. **Ronda 3 (`Subdomain Invites` + `/developer` + `Help Copilot`)**: Genera `SettingsRolesBuilder`, `crm_invitations` SHA-256 72h, `/accept-invite`, `/developer` + `crm_system/tenant_license` + webhook HMAC ([Blueprint 08](./references/08-rbac-roles-branded-invites-and-licensing.md)), `GlobalAnnouncementBanner` + `/config/app_version` + `POST /api/crm/help-copilot/ask` Streaming SSE con poda RBAC sobre `<slug>_ai_agent_docs/` ([Blueprint 09](./references/09-global-banners-theming-and-help-copilot.md) & [Blueprint 15](./references/15-ai-agents-kb-architecture-and-data-efficiency.md)).
+5. **Ronda 4 (`Entregas Locales`, `Catálogo Parametrizable/CABYS/Cuentas`, `Add-Ons` & `IA Mundo Cerrado`)**:
    - Si activa Entregas/Proyectos: despliega la suite `100%` local con folios `ETG/VIS/PROY/GAR` y ruteo GPS/OSRM ([Blueprint 12](./references/12-local-deliveries-agenda-projects-spec.md)), agregando `ExternalLogisticsAdapter` solo si eligió modo híbrido.
-   - Si activa Catálogo Maestro / Web: despliega `catalogProducts` + `web_catalog` (`writeBatch` dual), plantillas `.xlsx`, asistente de 3 pasos y hoja masiva ([Blueprint 13](./references/13-master-catalog-web-exposure-excel-engine.md)).
-   - Enciende en `crm_system/tenant_license.enabledModules` únicamente los add-ons seleccionados (`pricing_approvals`, `b2b_wholesale_portal`, `web_leads`, `cash_reconciliation` — [Blueprint 14](./references/14-modular-addons-pricing-b2b-webleads-pwa.md)) e inyecta la Constitución White-Label de Mundo Cerrado (`Closed-World SSOT Veto`) en el Agente IA ([Blueprint 04 Secciones 12–13](./references/04-ai-automations-5-subtabs-spec.md)).
+   - Si activa Catálogo Maestro / Web: despliega `crm_settings/catalog_config`, `catalogProducts` + `web_catalog` (`writeBatch` dual), `/api/crm/catalog/cabys` (API Hacienda + favoritos offline), `/products/settings` (esquema + cuentas contables + Excel 3 pasos), plantillas dinámicas `.xlsx` y hoja masiva ([Blueprint 13](./references/13-master-catalog-web-exposure-excel-engine.md)).
+   - Enciende en `crm_system/tenant_license.enabledModules` únicamente los add-ons seleccionados (`pricing_approvals`, `b2b_wholesale_portal`, `web_leads`, `cash_reconciliation` — [Blueprint 14](./references/14-modular-addons-pricing-b2b-webleads-pwa.md)) e inyecta la Constitución White-Label de Mundo Cerrado (`Closed-World SSOT Veto`) + serialización 1-línea `-90%` tokens en el Agente IA ([Blueprint 04 Secciones 12–13](./references/04-ai-automations-5-subtabs-spec.md) & [Blueprint 15](./references/15-ai-agents-kb-architecture-and-data-efficiency.md)).
 
 ---
 
 ## 1. Modos de Operación, Topologías de Montaje y Orquestador Desde Cero (`crm-from-scratch`)
 
 ### 1.1 Los 3 Modos de Ejecución del Skill
-1. **MODO A — Construcción Determinística Desde Cero (`Greenfield / crm-from-scratch`)**: Ejecuta primero la **Fase 0 Bloqueante (`6/6 ✅` en Sección 0)** y luego construye secuencialmente en **8 Fases Verificables** todo el CRM listo para clonar, conectar a Firebase y configurar llaves desde el Frontend sin tocar código.
-2. **MODO B — Extensión de Nuevos Sub-Módulos en el Chat (`Feature Expansion`)**: Aplica la receta estándar de la **Sección 10** para conectar herramientas específicas de un negocio en `ChatContextualToolbar` y `CrmRightPanel`.
-3. **MODO C — Auditoría Forense, Optimización de Costos y Blindaje (`Brownfield`)**: Audita rutas `/api/crm/*`, Server Actions, bóveda de secretos, hooks de lectura/paginación, pipeline WebP↔JPEG, `src/app/globals.css` (cero hardcoding visual), dropdowns/capas Z, los 8 submódulos de Configuración, `functions/index.js`, `firestore.rules`, `storage.rules` y `firestore.indexes.json` contra el **Checklist Forense de 24 Puntos (Sección 11.4)** y los **5 Blueprints de `./references/`**.
+1. **MODO A — Construcción Determinística Desde Cero (`Greenfield / crm-from-scratch`)**: Ejecuta primero la **Fase 0 Automatizada (`7/7 ✅` en Sección 0)**, las **4 Rondas Interactivas de Fase 0.5** y luego construye secuencialmente en **8 Fases Verificables** todo el CRM listo para clonar, conectar a Firebase y configurar llaves desde el Frontend sin tocar código.
+2. **MODO B — Extensión de Nuevos Sub-Módulos en el Chat (`Feature Expansion`)**: Aplica la receta estándar de la **Sección 10** y [Blueprint 10](./references/10-new-module-extension-and-multiclient-ops.md) para conectar herramientas específicas de un negocio en `ChatContextualToolbar` y `CrmRightPanel`.
+3. **MODO C — Auditoría Forense, Optimización de Costos y Blindaje (`Brownfield`)**: Audita rutas `/api/crm/*`, Server Actions, bóveda de secretos, webhook `131051` / pre-filtro de ecos móviles, hooks de lectura/paginación/anti-evicción (`LIVE_LIMIT = 80`), búsqueda `messages.searchTokens`, pipeline WebP↔JPEG, `src/app/globals.css` (cero hardcoding visual), dropdowns/capas Z, los submódulos de Configuración, `functions/index.js`, `firestore.rules`, `storage.rules` y `firestore.indexes.json` contra el **Checklist Forense de 56 Puntos (Sección 11.4)**, `scripts/audit-crm-forensic.mjs` y los **14 Blueprints de `./references/`**.
 
 ### 1.2 Las 3 Topologías de Montaje Soportadas con el Mismo Núcleo (`<CrmAppShell />`)
 Diseña siempre el CRM encapsulado bajo un adaptador de sesión (`CrmHostAuthAdapter`) y un resolvedor de rutas (`crmPaths(tenantId?)`) para operar en cualquiera de estas 3 modalidades:
@@ -305,50 +354,61 @@ Para que un proyecto limpio (`crm-from-scratch`) compile y funcione sin fallos o
    - `"engines": { "node": "22" }`, `firebase-admin`, `firebase-functions` (`^6.x` Gen 2), `fluent-ffmpeg` y `@ffmpeg-installer/ffmpeg` (o `ffmpeg-static`).
 3. **Scripts CLI y Activos Autocontenidos (`./scripts/` y `./resources/`)**:
    - [`scripts/provision-firebase-crm.mjs`](./scripts/provision-firebase-crm.mjs): Aprovisionador Cero-Fricción (`--project`, `--region`, `--owner-email`, `--dry-run`) para APIs, Firestore Native, Storage/Auth check, Web SDK, App Check, `crm_system/tenant_license` (incluyendo `hacienda_cr`), claim `platformDev: true` y `deploy/clients.manifest.json`.
-   - [`scripts/audit-crm-forensic.mjs`](./scripts/audit-crm-forensic.mjs): Auditor Forense estático local (7 checks incluyendo Higiene PKI `.p12`/`.pfx`, excepciones `/api/crm/webhooks/hacienda`, sin fuga en `/crm_media` ni hardcodes HEX/correos).
+   - [`scripts/audit-crm-forensic.mjs`](./scripts/audit-crm-forensic.mjs): Auditor Forense estático local (10 checks: modularidad `< 500` líneas, cero HEX/correos quemados, `verifyCrmRequestAuth`, Opus WASM, `/crm_media` privado, Higiene PKI `.p12`/`.pfx`, preservación Web Push sin `reg.unregister()`, cero `lastMessageAt: null` y blindaje `131051 unsupported` + `searchTokens` en `firestore.indexes.json`).
    - **Suite Fiscal Nativa Costa Rica DGT v4.4 (Ruta CLI Cloud Run `openssl` `-legacy` + `libxml2-utils` `xmllint`, o fallback Pure-JS `node-forge` + `@xmldom/xmldom` + `xml-crypto`)**:
      - [`scripts/hacienda-math-and-clave-v44.mjs`](./scripts/hacienda-math-and-clave-v44.mjs) + [`scripts/hacienda-xml-builder-v44.mjs`](./scripts/hacienda-xml-builder-v44.mjs) + [`scripts/sign-and-validate-v44.mjs`](./scripts/sign-and-validate-v44.mjs) (Clave 50 dígitos UTC-6, aritmética `BigInt` 5 decimales, firma XAdES-EPES v4.4, validación offline XSD y suite 10/10 auto-verificable).
      - [`scripts/generate-lab-p12.mjs`](./scripts/generate-lab-p12.mjs), [`scripts/preflight-and-drift-sentinel.mjs`](./scripts/preflight-and-drift-sentinel.mjs) y [`scripts/dgt-error-humanizer.mjs`](./scripts/dgt-error-humanizer.mjs).
      - [`resources/xmldsig-core-schema.xsd`](./resources/xmldsig-core-schema.xsd) y `./resources/xsd/v4.4/*.xsd`: Esquemas oficiales XSD v4.4 completos empaquetados para validación offline sin acceso externo.
 
-### 1.4 Orquestador de Construcción en Fase 0 + 8 Fases (`MODO A — Greenfield`)
-Cuando construyas el CRM desde una carpeta vacía, **prohibido generar archivos al azar en un solo bloque monolítico o saltar la validación de backend**. Ejecuta estrictamente la **Fase 0 Automatizada (`scripts/provision-firebase-crm.mjs`)**, las **3 Rondas Interactivas de Fase 0.5** y las **8 fases** (delegando dominios independientes a subagentes en paralelo tras bloquear los tipos en Fase 2 y manteniendo cada archivo `< 500 líneas`):
-- **Fase 0 (CLI + REST — Pre-Flight Backend Firebase `7/7 ✅`)**: Ejecutar `node scripts/provision-firebase-crm.mjs --project <ID> --owner-email <DEV_EMAIL>` verificando APIs, Plan `Blaze`, Firestore `FIRESTORE_NATIVE`, Auth `Email/Password` + `Google`, Storage, Web App SDK + App Check, Claim `platformDev: true` y `crm_system/tenant_license`.
+### 1.4 Orquestador de Construcción en Fase 0 + 8 Fases y Protocolo Multi-Agente por Olas (`MODO A — Greenfield`)
+Cuando construyas el CRM desde una carpeta vacía, **prohibido generar archivos al azar en un solo bloque monolítico o saltar la validación de backend**. Ejecuta estrictamente la **Ronda 0 + Fase 0 Automatizada (`scripts/provision-firebase-crm.mjs`)**, las **4 Rondas Interactivas de Fase 0.5** y las **8 fases**, manteniendo cada archivo `< 500` líneas:
+- **Fase 0 (CLI + REST — Pre-Flight Backend Firebase `7/7 ✅`)**: Ejecutar `node scripts/provision-firebase-crm.mjs --project <ID> --dev-emails <DEV_EMAIL>` verificando APIs, Plan `Blaze`, Firestore `FIRESTORE_NATIVE`, Auth `Email/Password` + `Google`, Storage, Web App SDK + App Check, Claim `platformDev: true` y `crm_system/tenant_license` + `crm_settings/catalog_config`.
 - **Fase 1 (Infraestructura, Auth Email+Google, Bóveda 8-Tarjetas & Theme Injector)**: Scaffold Next.js + `firebase.json` + `src/firebase/{client,server}.ts` + `crmPaths(tenantId?)` + Bóveda `AES-256-GCM` (`crm-credentials-vault.ts`, incluyendo `haciendaCr`) + Bootstrap Día 0 (`/api/crm/setup/bootstrap`) + `ThemeInjectorProvider` Zero-FOUC.
-- **Fase 2 (Tipos Canónicos, RBAC 3 Planos & Seguridad)**: `src/lib/types/crm.ts`, `crm-permissions.ts` (`CRM_PERMISSIONS` **20** claves incluyendo `SETTINGS_FISCAL` + `normalizeCrmPermissionKey`), `crm-auth-guard.ts`, `firestore.rules`, `storage.rules` y `firestore.indexes.json` (100% reciclables por cliente).
+- **Fase 2 (Tipos Canónicos, RBAC 3 Planos & Seguridad)**: `src/lib/types/{crm,catalog,help-agent}.ts`, `crm-permissions.ts` (`CRM_PERMISSIONS` **20** claves incluyendo `SETTINGS_FISCAL` + `normalizeCrmPermissionKey`), `crm-auth-guard.ts`, `firestore.rules`, `storage.rules` y `firestore.indexes.json` (100% reciclables por cliente).
 - **Fase 3 (Gateway Dualhook + Meta IG/Messenger nativos, Puente Sharp & Webhook)**: `dualhook-client.ts`, `meta-social-client.ts`, `/api/crm/admin/meta-social/discover`, `resolveOmnichannelContact` (`channelKeys`), `/api/crm/media/whatsapp-jpeg`, `/api/crm/webhook` (+ `[tenantId]`), `/api/crm/messages/{send,search}` y Server Actions chunked (`≤ 450` ops).
 - **Fase 4 (Datos Eficientes, N-Gram, 4 Pestañas & Round-Robin)**: `search-helpers.ts` (`'a'`, `'an'`, `'ana'` NFD), hooks Singleton (`use-crm-conversations`, `use-crm-messages` Target Mode, `use-crm-contacts`) y motor `auto-assign-service.ts`.
 - **Fase 5 (Shell UI `100dvh`, `<AppIcon />` Phosphor, Banner Jira & Cloud Function FFmpeg)**: `/login`, `/setup`, `/accept-invite`, `/developer`, `GlobalAnnouncementBanner` + `WhatsNewChangelogDrawer` (`/config/app_version`), `ChatSidebar`, `ChatArea`, burbujas enriquecidas, `useAudioRecorder` WASM y `functions/index.js`.
-- **Fase 6 (Módulos Core, POS 4 Modos / Hacienda CR v4.4 & Copiloto IA Gratis)**: Plantillas WABA, Marketing `.webp`, Agente IA Clientes (`ai_knowledge`), Copiloto IA de Ayuda Interna (`gemini-2.5-flash-lite` sobre `*_ai_agent_docs`), POS `PosProviderAdapter` (incluyendo `HaciendaCrNativePosAdapter`, Outbox `PRE_SAVED`, `/api/crm/webhooks/hacienda/[tenantId]/[env]/[mac]` y `/api/crm/pos/convert-te-to-fe` si aplica CR), Métricas y Agenda opcional.
+- **Fase 6 (Módulos Core, Catálogo/CABYS/Cuentas, POS 4 Modos & Motores IA)**: Plantillas WABA, Marketing `.webp`, Agente IA Clientes (`ai_knowledge`, serialización 1-línea `-90%`), Copiloto IA Streaming sobre `<slug>_ai_agent_docs` + `crm_help_chats` (`Blueprint 15`), Catálogo Configurable (`/products*`, `/api/crm/catalog/cabys`, `/products/settings`), POS `PosProviderAdapter` (`Modo A/B1/B2/C`), Entregas/Proyectos locales y Add-Ons (`pricing_approvals`, `b2b_wholesale_portal`, `web_leads`, `cash_reconciliation`).
 - **Fase 7 (Centro de Configuración, Marca en Vivo, Hacienda CR & Roles/Invitaciones Branded)**: `SettingsView` con las 8 tarjetas Write-Only (y pestaña `SettingsFiscalHacienda` con `verify-and-activate`), **Marca y Apariencia** (Logo WebP, 8 paletas + pickers `--primary`/`--secondary`/`--tertiary`), **Usuarios, Constructor de Roles Dinámicos e Invitaciones Subdominio** y **Mapeo 1-a-1 POS**.
-- **Fase 8 (Compuerta Empírica Obligatoria)**: Ejecutar `node scripts/audit-crm-forensic.mjs .`, `node scripts/sign-and-validate-v44.mjs` + `node scripts/preflight-and-drift-sentinel.mjs` (si Facturación Hacienda CR está activa), `npm run typecheck` (`tsc --noEmit`), `node --check functions/index.js` y `npm run build` con **0 errores** antes de entregar.
+- **Fase 8 (Compuerta Empírica Obligatoria)**: Generar/actualizar `<slug>_ai_agent_docs/` + `00-CONTENT-TABLE.md`, ejecutar `node scripts/audit-crm-forensic.mjs .`, `node scripts/sign-and-validate-v44.mjs` + `node scripts/preflight-and-drift-sentinel.mjs` (si Hacienda CR está activa), `npm run typecheck` (`tsc --noEmit`), `node --check functions/index.js` y `npm run build` con **0 errores** antes de entregar.
 
-### 1.5 Regla Maestra White-Label (`src/app/globals.css` + Estudio Vivo) y Compuertas Obligatorias de Lectura (`./references/01..14`)
+#### Protocolo de Despacho por Olas para Agentes Orquestadores (Carbon / Subagentes)
+Cuando un agente coordinador (ej. Carbon + subagentes paralelos) construya un CRM completo desde cero, **prohibido lanzar múltiples autores editando los mismos archivos base**. Despacha en 3 Olas estrictas:
+1. **Ola 1 — Secuencial (Contratos Congelados · Fases 0–2)**: Completa Pre-Flight (`7/7 ✅`), `src/lib/types/*`, `crmPaths()`, `crm-permissions.ts`, `crm-credentials-vault.ts`, `crm-auth-guard.ts`, `firestore.rules`, `storage.rules` y `firestore.indexes.json` **antes** de abrir subagentes.
+2. **Ola 2 — 4 Subagentes Paralelos con Carpetas Disjuntas (`< 500` líneas/archivo)**:
+   - **Subagente A (`Gateway & Webhook`)**: `src/lib/services/{dualhook-client,meta-social-client,crm-media-downloader}.ts`, `/api/crm/webhook*`, `/api/crm/media/*`, `/api/crm/messages/{send,search}` y `functions/index.js`.
+   - **Subagente B (`Workspace & Hooks`)**: `src/hooks/crm/*`, `src/app/crm/_components/{ChatSidebar*,ChatArea*,MessageList*,ChatHeader*,ChatInput*}` y burbujas WhatsApp.
+   - **Subagente C (`Catálogo Configurable, CABYS & POS/Hacienda`)**: `src/lib/product-{utils,service,excel}.ts`, `/api/crm/catalog/cabys`, `src/app/products*` y adaptadores `src/lib/services/pos-*` + motor `hacienda/*`.
+   - **Subagente D (`Motores IA, Copiloto & Suite Operativa/B2B`)**: `src/ai/*`, `src/lib/services/{crm-ai-*,help-agent-*,gemini-error-formatter}.ts`, `POST /api/crm/help-copilot/ask`, módulos `deliveries/visits/projects/warranties` y add-ons B2B/Precios/Caja.
+3. **Ola 3 — Ensamblaje, Base Documental IA & Compuerta Única (Fases 7–8)**: Cablea `SettingsView`, genera `<slug>_ai_agent_docs/` + `00-CONTENT-TABLE.md` y ejecuta `audit-crm-forensic.mjs` + `typecheck` + `build` antes del merge final.
+
+### 1.5 Regla Maestra White-Label (`src/app/globals.css` + Estudio Vivo) y Compuertas Obligatorias de Lectura (`./references/01..15`)
 
 > [!IMPORTANT]
 > **1. `src/app/globals.css` + `ThemeInjectorProvider` como Única Fuente de Verdad Visual y Tipográfica (Zero Hardcoding)**:
 > - **Toda** la paleta de colores (`:root` y `.dark`), superficies (`--background`, `--card`, `--popover`, `--muted`, `--accent`), marca (`--primary`, `--secondary`, `--tertiary`, `--ring`), estados semánticos (`--destructive`, `--success`, `--warning`, `--info`), burbujas WhatsApp (`--chat-outbound`, `--chat-inbound`, `--chat-internal-note`), series de gráficas (`--chart-1..5`), radios (`--radius`) y variables tipográficas (`--font-sans`, `--font-headline`, `--font-mono`) **se definen única y exclusivamente en `src/app/globals.css`**, con sobreescritura en vivo desde *Configuración → Marca y Apariencia* (`crm_settings/branding` + caché `localStorage` Zero-FOUC).
 > - **PROHIBIDO** quemar colores HEX/RGB/HSL (`bg-[#...]`), escalas fijas de Tailwind (`bg-slate-900`, `text-gray-800`, `bg-blue-600`) o íconos genéricos `lucide-react` donde corresponda `<AppIcon />` (`@phosphor-icons/react`).
 >
-> **2. Lectura Obligatoria Progresiva de los 14 Blueprints (`./references/01..14`)**:
-> Antes de escribir o auditar cualquier pantalla, dropdown, submódulo de `Configuración CRM`, canal IG/Messenger, flujo de etiquetas, automatización IA, Punto de Venta (`POS`), Facturación Hacienda CR v4.4, Entregas/Proyectos locales, Catálogo/Excel/Web, Add-Ons B2B/Precios/Caja, directorio, roles/licencias o tema visual, **DEBES leer con `read_file` el manual correspondiente** en la carpeta `references/` de esta skill:
+> **2. Lectura Obligatoria Progresiva de los 15 Blueprints (`./references/01..15`)**:
+> Antes de escribir o auditar cualquier pantalla, dropdown, submódulo de `Configuración CRM`, canal IG/Messenger, flujo de etiquetas, automatización IA, arquitectura `<slug>_ai_agent_docs`, Punto de Venta (`POS`), Facturación Hacienda CR v4.4, Entregas/Proyectos locales, Catálogo/CABYS/Cuentas/Excel/Web, Add-Ons B2B/Precios/Caja, directorio, roles/licencias o tema visual, **DEBES leer con `read_file` el manual correspondiente** en la carpeta `references/` de esta skill:
 
 | Blueprint Modular en `./references/` | Cuándo es OBLIGATORIO Leerlo | Qué Especifica al 100% |
 | :--- | :--- | :--- |
-| [`01-design-system-dropdowns-zlayers.md`](./references/01-design-system-dropdowns-zlayers.md) | Fase 1, Fase 5–7 y toda tarea o auditoría de UI / CSS / Modales / Íconos | Plantilla maestra `src/app/globals.css` White-Label (`--primary`/`--secondary`/`--tertiary`), Sección 9 `<AppIcon />` (`@phosphor-icons/react` Duotone + `LEGACY_LUCIDE_ALIASES` incluyendo `'fiscal'`), Dropdowns en portales anti-recorte (`z-[150]`), escalera `z-10` → `z-[9999]`, 18 clases `.crm-tag-{hue}` WCAG AAA, `isPlainPojo()` SWC-safe y bypass Workbox PWA. |
-| [`02-chat-workspace-tags-quickreplies.md`](./references/02-chat-workspace-tags-quickreplies.md) | Fase 5 y tareas sobre Chat, Header, PDF Multilínea, Burbujas Visuales, Audio OGG, Ubicación GPS, Navegación Móvil, Etiquetas o Atajos `/` | Ciclo de Etiquetas en 5 puntos, Respuestas Rápidas `/atajo`, cola FIFO `use-crm-send-queue.ts`, `useCrmMessages` dual + anclaje `useLayoutEffect`, grabación WASM OGG, `VoiceNotePlayer`, suite completa de burbujas (PDF `line-clamp-2`, GPS, AdReferral, Albums), `ChatHeader` 5 categorías y `useCrmMobileBackLayer`. |
+| [`01-design-system-dropdowns-zlayers.md`](./references/01-design-system-dropdowns-zlayers.md) | Fase 1, Fase 5–7 y toda tarea o auditoría de UI / CSS / Modales / Íconos | Plantilla maestra `src/app/globals.css` White-Label (`--primary`/`--secondary`/`--tertiary`), Sección 9 `<AppIcon />` (`@phosphor-icons/react` Duotone + `LEGACY_LUCIDE_ALIASES` incluyendo `'fiscal'`), Dropdowns en portales anti-recorte (`z-[150]`), escalera `z-10` → `z-[9999]`, 18 clases `.crm-tag-{hue}` WCAG AAA, `isPlainPojo()` SWC-safe, bypass Workbox PWA y **Sección 10 Tooltip Portal Global `z-[9999]` + `NO_SPINNER_NUMBER_CLASS` + Favicon SVG Adaptativo**. |
+| [`02-chat-workspace-tags-quickreplies.md`](./references/02-chat-workspace-tags-quickreplies.md) | Fase 4, Fase 5 y tareas sobre Sidebar, Historial, Filtros, Búsqueda, Chat, Header, PDF Multilínea, Burbujas Visuales, Audio OGG, Ubicación GPS, Navegación Móvil, Etiquetas o Atajos `/` | Ciclo de Etiquetas en 5 puntos, Respuestas Rápidas `/atajo`, cola FIFO `use-crm-send-queue.ts`, `useCrmMessages` dual + anclaje `useLayoutEffect`, grabación WASM OGG, `VoiceNotePlayer`, suite completa de burbujas (PDF `line-clamp-2`, GPS, AdReferral, Albums), `ChatHeader` 5 categorías, `useCrmMobileBackLayer` y **Sección 11 Sidebar Híbrida `LIVE_LIMIT = 80` + Sockets Anti-Evicción + `loadMoreTabHistory`, Filtros Server-Indexed, Búsqueda Total `messages.searchTokens`, Integridad `isNewLead` Round-Robin y `runCrmHistoryRepairAndBackfill`**. |
 | [`03-settings-hub-and-8-submodules.md`](./references/03-settings-hub-and-8-submodules.md) | Fase 6, Fase 7 y tareas en `Configuración CRM` y Permisos RBAC | `SettingsLayout` (`<AppIcon />` + pestañas `branding` y `fiscal_hacienda` + `isModuleLicensed`), `SettingsConnections` (Bóveda 8-tarjetas `/api/crm/admin/credentials*`), `CRM_PERMISSIONS` + `normalizeCrmPermissionKey`, Submódulo Mapeo 1-a-1 POS, keyring `crm-crypto.ts` y puente Anti-SSRF. |
-| [`04-ai-automations-5-subtabs-spec.md`](./references/04-ai-automations-5-subtabs-spec.md) | Fase 6 y toda tarea del Bot IA de Clientes / Prompt White-Label / Eficiencia / Guardrails | `SettingsBot` 5 Subtabs, telemetría, audios OGG, Pin GPS `[location]`, guardrail instalación, **Sección 12 Prompt White-Label + Veto Mundo Cerrado (`Closed-World SSOT`)** y **Sección 13 Prefix Caching (`-90%`), Circuit Breaker por scope, Notas Inteligentes Consolidadas `2h` y Ventana Consciente de Madrugada**. |
-| [`05-directory-and-analytics-spec.md`](./references/05-directory-and-analytics-spec.md) | Fase 6 y tareas de Directorio, Agenda o Analíticas | `DirectoryLayout` N-Gram, paginación `collectionGroup`, Suite Ejecutiva Dual-Tab de Métricas y Telemetría IA (`v4.10.2`), SLA `calculateBusinessMinutes`, `.select(...CONV_SELECT_FIELDS)`, Horas Pico Dual-Line y `AnalyticsDrilldownModal`. |
-| [`06-pos-point-of-sale-global-spec.md`](./references/06-pos-point-of-sale-global-spec.md) | Fase 6 y toda tarea sobre Punto de Venta (POS), Cotizaciones, Borradores, Facturación o Stock | `PosProviderAdapter` 4 Modos, **Sección 7 UI Universal botón por botón (`+1/+5/+10`, `DOC_MODE_CARDS`, `PosHistoryView` 3 niveles)**, **Sección 8 Borradores Cloud `crm_pos_drafts` + Match `100% E.164`**, **Sección 9 PDF `<24h` vs `>24h` (`headerDocument`)** y **Sección 10 Cápsula ERP/Alegra (`Modo B2`: Ledger de Stock + Cron `15m`)**. |
+| [`04-ai-automations-5-subtabs-spec.md`](./references/04-ai-automations-5-subtabs-spec.md) | Fase 3, Fase 6 y toda tarea del Webhook `131051` / Bot IA de Clientes / Prompt White-Label / Eficiencia / Guardrails | `SettingsBot` 5 Subtabs, telemetría, audios OGG, Pin GPS `[location]`, guardrail instalación, **Sección 12 Prompt White-Label + Veto Mundo Cerrado (`Closed-World SSOT`)**, **Sección 13 Prefix Caching (`-90%`), Circuit Breaker por scope, Notas Inteligentes Consolidadas `2h` y Ventana Consciente de Madrugada** y **Sección 14 Blindaje Mensajes Efímeros/CTWA (`131051 unsupported`), Pre-Filtro de Ecos Móviles y Apertura IA en 3 Casos (`resolveUnsupportedOpeningTurn`)**. |
+| [`05-directory-and-analytics-spec.md`](./references/05-directory-and-analytics-spec.md) | Fase 6 y tareas de Directorio, Agenda o Analíticas | `DirectoryLayout` N-Gram (incluyendo indexación de cédula/NIT `identificationNumber` + índice RBAC `ownerId + searchPrefixes`), paginación `collectionGroup`, Suite Ejecutiva Dual-Tab de Métricas y Telemetría IA (`v4.10.2`), SLA `calculateBusinessMinutes`, `.select(...CONV_SELECT_FIELDS)`, Horas Pico Dual-Line y `AnalyticsDrilldownModal`. |
+| [`06-pos-point-of-sale-global-spec.md`](./references/06-pos-point-of-sale-global-spec.md) | Fase 6 y toda tarea sobre Punto de Venta (POS), Cotizaciones, Borradores, Facturación o Stock | `PosProviderAdapter` 4 Modos, **Sección 7 UI Universal botón por botón (`+1/+5/+10`, `DOC_MODE_CARDS`, `PosHistoryView` 3 niveles y `PosPaymentMethodRule` con `accountScope` + `requireReference`)**, **Sección 8 Borradores Cloud `crm_pos_drafts` + Match `100% E.164`**, **Sección 9 PDF `<24h` vs `>24h` (`headerDocument`)** y **Sección 10 Cápsula ERP/Alegra (`Modo B2`: Ledger de Stock + Cron `15m`)**. |
 | [`07-meta-omnichannel-ig-messenger-identity.md`](./references/07-meta-omnichannel-ig-messenger-identity.md) | Fase 3 y toda integración de **Instagram Direct**, **Facebook Messenger** o **Unificación 360°** | Guía Meta Business + interruptor IG móvil, auto-discovery 1-Token (`/api/crm/admin/meta-social/discover`), `meta-social-client.ts` (`24h` vs `7d HUMAN_AGENT`), `channelKeys` (`wa:`/`ig:`/`fb:`), sugerencia de fusión por teléfono y `mergeOmnichannelContacts`. |
 | [`08-rbac-roles-branded-invites-and-licensing.md`](./references/08-rbac-roles-branded-invites-and-licensing.md) | Fase 2, 5, 7 y todo cambio en Roles, Invitaciones o Panel `/developer` | **RBAC en 3 Planos** (`platformDev` Custom Claim vs Owner/Admin vs `roles/{roleId}`), `CRM_PERMISSIONS` expandido + aliases, `SettingsRolesBuilder`, invitaciones `crm_invitations` SHA-256 72h por subdominio, `/accept-invite`, `/developer` + `crm_system/tenant_license` (15 flags modulares) + webhook HMAC. |
-| [`09-global-banners-theming-and-help-copilot.md`](./references/09-global-banners-theming-and-help-copilot.md) | Fase 1, 5–7 y tareas de Tema en Vivo, Banners o Copiloto IA Gratis | Estudio de Marca y **8 Paletas WCAG AA/AAA** (`ThemeInjectorProvider` Zero-FOUC), **`GlobalAnnouncementBanner`** estilo Jira + **`WhatsNewChangelogDrawer`** (`/config/app_version`) y **Copiloto IA de Ayuda Gratis** (`gemini-2.5-flash-lite` + `*_ai_agent_docs` filtrados por rol). |
+| [`09-global-banners-theming-and-help-copilot.md`](./references/09-global-banners-theming-and-help-copilot.md) | Fase 1, 5–7 y tareas de Tema en Vivo, Banners o Copiloto IA | Estudio de Marca y **8 Paletas WCAG AA/AAA** (`ThemeInjectorProvider` Zero-FOUC), **`GlobalAnnouncementBanner`** estilo Jira + **`WhatsNewChangelogDrawer`** (`/config/app_version`) y **Copiloto IA Streaming SSE** (`POST /api/crm/help-copilot/ask` + `crm_help_chats`, `⌘J` / FAB móvil). |
 | [`10-new-module-extension-and-multiclient-ops.md`](./references/10-new-module-extension-and-multiclient-ops.md) | Fase 0, 8 y al conectar un Nuevo Módulo de Negocio o clonar a Clientes | Receta de 6 pasos para enchufar un módulo nuevo en `ChatContextualToolbar`/`CrmRightPanel`, catálogo de módulos pre-integrados y Workflow **GitHub 2-Ramas (`demo` → `main`)** con `deploy/clients.manifest.json`. |
 | [`11-hacienda-cr-v44-pos-fiscal-engine.md`](./references/11-hacienda-cr-v44-pos-fiscal-engine.md) | Fase 2, 6, 7 y toda integración de Facturación Electrónica Costa Rica (TRIBU-CR / DGT v4.4) | 7 Leyes de Hierro + Outbox `PRE_SAVED`, `HaciendaCrNativePosAdapter`, conversión `TE -> NC + FE`, matriz `<Receptor>` v4.4 + APIs públicas (`/fe/ae`, `/fe/cabys`, `/fe/ex`, `/indicadores/tc/dolar`), `REP 10` Art. 27 LIVA, firma XAdES-EPES (`-legacy` + Cloud Run Dockerfile / Pure-JS), webhook 4 anillos + polling 60s, UI 3 tarjetas `verify-and-activate`, Sandbox Dual y `<FiscalHealthBanner />`. |
 | [`12-local-deliveries-agenda-projects-spec.md`](./references/12-local-deliveries-agenda-projects-spec.md) | Fase 6 y toda tarea de Entregas, Visitas Técnicas, Proyectos Multi-Día o Garantías (`scheduling`) | Suite `100%` Local en Firestore (cero sistemas propietarios acoplados): folios atómicos `ETG/VIS/PROY/GAR`, máquinas de estado terminales completas, conversión `Visita → Proyecto`, vigencia de garantía, calendario multi-día, desenrollador GPS/OSRM Anti-SSRF y `ExternalLogisticsAdapter` opcional. |
-| [`13-master-catalog-web-exposure-excel-engine.md`](./references/13-master-catalog-web-exposure-excel-engine.md) | Fase 6 y toda tarea de Catálogo Maestro, Exposición en Página Web o Plantillas Excel / Edición Masiva | Doble colección `catalogProducts` (SSOT con costos) + `web_catalog` (`writeBatch` seguro sin costos + `/api/revalidate`), generador SKU con detección de huecos, plantillas `.xlsx` universales (+ perfil ERP opcional), actualización Excel en 3 pasos y hoja interactiva `/products/mass-update` con 5 operadores por lote. |
-| [`14-modular-addons-pricing-b2b-webleads-pwa.md`](./references/14-modular-addons-pricing-b2b-webleads-pwa.md) | Fase 5–8 y al activar Precios B2C, Portal Mayorista B2B, Prospectos Web, Caja/Pagos o blindar PWA | Escalas B2C + aprobaciones inline en Campana `<Popover>` + Web Push (`pricing_approvals`), Portal Mayorista `/portal-distribuidores` sin Auth externo (`b2b_wholesale_portal`), `WebLeadsModal` B2B/B2C (`web_leads`), Links de Pago + Caja bimoneda + SINPE (`cash_reconciliation`) y **5 Defensas Críticas PWA/Radix/Workbox**. |
+| [`13-master-catalog-web-exposure-excel-engine.md`](./references/13-master-catalog-web-exposure-excel-engine.md) | Fase 6 y toda tarea de Catálogo Maestro Configurable, CABYS API Hacienda, Cuentas Contables, Web o Plantillas Excel | **`CatalogSchemaConfig` activable por cliente (`Origen`, `Sub-series`, `skuPolicyMode`, `fiscalCodeMode`, `Cuentas Contables`)**, **Buscador CABYS en vivo (API Hacienda CR + IVA automático + favoritos offline)**, **Plan de Cuentas + Matriz por Categoría (`/products/settings`)**, doble colección `catalogProducts` + `web_catalog`, plantillas `.xlsx`, Excel 3 pasos, hoja `/products/mass-update` e índices compuestos. |
+| [`14-modular-addons-pricing-b2b-webleads-pwa.md`](./references/14-modular-addons-pricing-b2b-webleads-pwa.md) | Fase 5–8 y al activar Precios B2C, Portal Mayorista B2B, Prospectos Web, Caja/Pagos o blindar PWA | Escalas B2C + aprobaciones inline en Campana `<Popover>` + Web Push (`pricing_approvals`), Portal Mayorista `/portal-distribuidores` sin Auth externo con **`mode: 'admin_preview'` Zero-Impersonation, `B2bPaginationBar` y `toPortalSafeOrder()`** (`b2b_wholesale_portal`), `WebLeadsModal` B2B/B2C (`web_leads`), Links de Pago + Caja bimoneda + SINPE (`cash_reconciliation`) y **5 Defensas Críticas PWA/Radix/Workbox**. |
+| [`15-ai-agents-kb-architecture-and-data-efficiency.md`](./references/15-ai-agents-kb-architecture-and-data-efficiency.md) | Fase 3, 6, 8 y en TODO diseño de KBs `<slug>_ai_agent_docs/`, RAG por rol o Prompts de Agentes IA | Estándar BRD **`<slug>_ai_agent_docs/`** (`< 500` líneas, doble TOC `Lxxx-Lyyy`, `[ROL: ...]`), **Poda Física RBAC Pre-LLM**, **Clasificador `concise/broad/detailed` + `ThinkingLevel.MINIMAL` (`< 1.5s`)**, **Streaming SSE `Click-Pap` (`<<OPCIONES>>`)**, **Serialización 1-Línea Anti-JSON (`-75%` tokens) + `Static-First` Caching (`-90%`)**, y **Circuit Breaker Multi-Ámbito + `AiGenerationError`**. |
 
 ---
 
@@ -361,7 +421,8 @@ Cuando construyas el CRM desde una carpeta vacía, **prohibido generar archivos 
 1. **Modalidad A — Coexistencia (`WhatsApp Business App` + `Cloud API` simultáneos) [ESTÁNDAR RECOMENDADO]**:
    - El número **sigue operando en el celular físico** con la app oficial **WhatsApp Business** (jamás WhatsApp Messenger personal).
    - Requisitos de Meta: app WhatsApp Business actualizada, antigüedad mínima recomendada de **7 días de uso activo** y país habilitado para *WhatsApp Business App Onboarding*.
-   - Todo mensaje enviado desde el celular se sincroniza al CRM vía `smb_message_echoes` y pausa automáticamente al Bot IA (*Human Takeover*).
+   - **Ajuste Obligatorio en el Celular Físico (Anti-Error `131051`)**: En la app **WhatsApp Business** del teléfono físico, configurar **Ajustes → Privacidad → Duración predeterminada de los mensajes → `Desactivada`**. Si el teléfono corporativo tiene mensajes temporales por defecto activados junto con saludos automáticos de anuncios, Meta Cloud API bloquea el texto del primer turno con código `131051` (`msg.type === 'unsupported'`).
+   - Todo mensaje real enviado desde el celular se sincroniza al CRM vía `smb_message_echoes` y pausa automáticamente al Bot IA (*Human Takeover*).
 2. **Modalidad B — Cloud API Puro (Exclusivo en servidor)**:
    - El número no debe tener sesión activa en ninguna app móvil de WhatsApp al momento de verificarlo por SMS/llamada en el Embedded Signup.
 
@@ -825,16 +886,19 @@ export async function acquireWebhookIdempotencyLock(
 }
 ```
 
-### 4.3 Los 4 Flujos del Webhook (`POST`)
+### 4.3 Los 4 Flujos del Webhook (`POST`) + Blindaje Anti-Pérdida `131051` / Ecos Fantasma (`v5.3`)
 1. **`message_template_status_update`**: Actualiza estado (`APPROVED`, `REJECTED`, `PAUSED`) en `crm_whatsapp_templates`.
-2. **`smb_message_echoes` (Coexistencia Móvil)**:
-   - `echo.to` es el teléfono del cliente (`normalizeToE164(echo.to, generalLocale)`).
-   - Guarda con `direction: 'outbound'`, `senderType: 'mobile'`, `senderName: 'WhatsApp Móvil'`, `status: 'sent'`.
-   - **No abre ventana de 24h** ni altera `unreadCount`, y activa **Human Takeover Instantáneo** (`{ aiHandling: false, aiPendingEvaluation: false, humanTookOver: true }`).
-3. **`value.messages[]` (Cliente → Empresa)**:
+2. **`smb_message_echoes` (Coexistencia Móvil — Pre-Filtro Estricto Antes de Crear Contacto/Conversación)**:
+   - **Pre-Filtro Crítico Antes del Candado (`crm-webhook-echo-handler.ts`)**: Antes de adquirir `acquireWebhookIdempotencyLock` o invocar `getOrCreateContact` / `getOrCreateConversation`, **descartar de inmediato** cualquier eco donde: (a) `isMetaSystemOrTestPhone(echo.to)` coincida con números sintéticos de prueba de Meta (`/^1555\d{7}$/`), o (b) `echo.type` sea `'system'`, `'ephemeral'` o **`'unsupported'`** (`131051`, ej. auto-saludo de anuncio en hilo con mensajes temporales). **Jamás** persistir un eco `unsupported`: hacerlo borraría `unreadCount: 0`, apagaría `isNewLead: false` y activaría un falso `humanTookOver: true` silenciando al Bot IA.
+   - En ecos reales de asesor/dueño desde el celular: `echo.to` es el teléfono del cliente (`normalizeToE164(echo.to, generalLocale)`), guarda con `direction: 'outbound'`, `senderType: 'mobile'`, `senderName: 'WhatsApp Móvil'`, `status: 'sent'`, `searchTokens: generateMessageSearchTokens(...)`, actualiza `lastMessageSender: 'mobile'` y `isNewLead: false`, **no abre ventana de 24h** y activa **Human Takeover Instantáneo** (`{ aiHandling: false, aiPendingEvaluation: false, humanTookOver: true }`).
+3. **`value.messages[]` (Cliente → Empresa — Cero Descarte Silencioso en `131051`)**:
+   - **Pre-Filtro Antes de Crear Hilos Fantasma**: Ignorar antes de `getOrCreateContact` cualquier evento `msg.type === 'system' || msg.type === 'ephemeral'` o teléfono `isMetaSystemOrTestPhone(msg.from)` (`+1555...`).
    - **`reaction`** y **`revoke`**: `reaction` muta el mapa `reactions`; `revoke` **jamás borra evidencia**, marca `{ isRevoked: true, revokedAt: FieldValue.serverTimestamp(), originalBody }`.
-   - **Mensaje Estándar / Multimedia / Anuncio**: Adquiere candado `acquireWebhookIdempotencyLock`, resuelve contacto/conversación por `getPhoneLookupVariants`, extiende `serviceWindowExpiresAt = Date.now() + 86_400_000`, incrementa `unreadCount`, hidrata cita `msg.context?.id` y `msg.referral`, auto-descarga `audio` y `sticker`.
-   - **Disparo Automático de Round-Robin + SLA IA**: Si `!conv.isOperational`: (a) si `conv.status === 'unassigned'` y `isWithinBusinessHours(autoAssignConfig, generalConfig.timezone, aiConfig.closedDates)`, ejecuta `runAutoAssignTransaction(conv.id, tenantId)`; (b) programa la evaluación SLA del Agente IA (salvo chats operativos no vinculados a `liveWhatsappTest`).
+   - **Preservación Obligatoria de `msg.type === 'unsupported'` (Meta Error `131051` — Mensajes Efímeros / Temporales) + Nuevos Tipos**:
+     - **PROHIBIDO** descartar `msg.type === 'unsupported'` con `bodyText: ''` + `continue;` (eso creaba conversaciones vacías con `unreadCount: 0`, perdía la atribución CTWA `referral` y dejaba al lead sin respuesta IA).
+     - En su lugar, `extractInboundPayload` emite un mensaje visible con `UNSUPPORTED_INBOUND_PLACEHOLDER_PREFIX` (`'⚠️ Mensaje oculto por Meta (el cliente tiene mensajes temporales/efímeros activados o envió un formato restringido por Cloud API)...'`), registra diagnóstico estructurado `{ waMessageId, msgType, errorCodes, hasReferral }` y soporta además `interactive.nfm_reply` (WhatsApp Flows), `request_welcome` (apertura CTWA sin texto) y `order` (carrito de catálogo nativo).
+   - **Mensaje Estándar / Multimedia / Anuncio CTWA**: Adquiere `acquireWebhookIdempotencyLock`, resuelve contacto/conversación por `getPhoneLookupVariants`, extiende `serviceWindowExpiresAt = Date.now() + 86_400_000`, incrementa `unreadCount`, fija `lastMessageAt: FieldValue.serverTimestamp()` (**nunca `null`**), indexa `searchTokens` (`<= 45` tokens), hidrata `msg.context?.id`, extrae `rawReferral = msg.referral || msg.context?.referral` (incluyendo `welcomeMessageText` y escritura atómica de `lastReferral` en el mismo `.update()` de la conversación, reactivando `isNewLead: true` si un lead de anuncio reingresa tras `> 7 días` de inactividad) y auto-descarga `audio` y `sticker`.
+   - **Disparo Automático de Round-Robin + Apertura Inteligente IA en 3 Casos**: Si `!conv.isOperational`: (a) si `conv.status === 'unassigned'` y `isWithinBusinessHours(...)`, ejecuta `runAutoAssignTransaction`; (b) programa la evaluación SLA del Agente IA, donde `prepareAiPromptMessages` + `resolveUnsupportedOpeningTurn` ([Blueprint 04 Sección 14](./references/04-ai-automations-5-subtabs-spec.md)) abren cálidamente mencionando el producto del anuncio (`Caso A`), el tema previo (`Caso B`) o preguntando en qué ayudar sin repetir jerga técnica de Meta (`Caso C`).
 4. **`value.statuses[]` (`sent` → `delivered` → `read` / `failed` — Fast-Path de Solo Lectura)**:
    - **PROHIBIDO** invocar `getOrCreateContact` o `getOrCreateConversation` en ticks de estado.
    - Consulta `conversationsCol.where('contactPhone', 'in', variants).limit(1)`, localiza `messages.where('waMessageId', '==', status.id).limit(1)` y aplica orden monotónico (`sending: 0 < sent: 1 < delivered: 2 < read: 3`; `failed` graba `errorCode` y `errorMessage`).
@@ -1074,9 +1138,9 @@ Este pipeline garantiza el menor costo posible de almacenamiento y carga instant
    - En UI (`SharedContactCard` + `SaveSharedContactModal`), verifica duplicados contra las variantes telefónicas (`/api/crm/conversations/check`); si no existe, permite guardarlo como **`Cliente`** o dentro de cualquiera de las **subdivisiones activas de `Operativo`** con `isServiceWindowOpen: false` y abrir el hilo vía `CustomEvent('crm:select-chat')`.
 2. **Ubicaciones GPS (`msg.type === 'location'`) y Enlaces de Mapas**:
    - Extrae `{ latitude, longitude, name, address, url }` tanto en mensajes de clientes como en `smb_message_echoes` y detecta enlaces `maps.app.goo.gl`, `google.com/maps` y `waze.com/ul` en texto. Si `schedulingModule.enabled === true`, muestra el botón dinámico con el ícono y nombre configurados (*"Agregar a {singularLabel}"*) precargando `mapUrl`.
-3. **Anuncios de Meta Click-to-WhatsApp (`msg.referral`)**:
-   - Cuando el cliente entra desde un anuncio de Facebook/Instagram, `msg.referral` entrega `{ source_id, source_type: 'ad', source_url, headline, body, media_type, image_url, thumbnail_url, ctwa_clid }`.
-   - **Triple Persistencia**: (a) En `messages/{msgId}.referral` para precargar la tarjeta visual `AdReferralPreview` encima del texto del cliente; (b) en `crm_conversations/{convId}.lastReferral` para que el asesor y el **Agente IA** conozcan el anuncio exacto; (c) en `crm_contacts/{contactId}` (`firstAdSourceId` first-touch + `interactedAdIds` multi-touch) y en el diccionario único `crm_settings/meta_campaigns` para analítica de campañas en 1 lectura.
+3. **Anuncios de Meta Click-to-WhatsApp (`msg.referral || msg.context?.referral` + `request_welcome`)**:
+   - Cuando el cliente entra desde un anuncio de Facebook/Instagram (incluso si tiene mensajes temporales activados `131051` o dispara `request_welcome`), `extractAndRegisterReferral` inspecciona tanto `msg.referral` como `msg.context?.referral`, extrayendo `{ source_id, source_type: 'ad', source_url, headline, body, media_type, image_url, thumbnail_url, ctwa_clid, welcomeMessageText }`.
+   - **Triple Persistencia Atómica + Reingreso >7d**: (a) En `messages/{msgId}.referral` para precargar la tarjeta visual `AdReferralPreview`; (b) en el **mismo `.update()` principal** de `crm_conversations/{convId}.lastReferral` (evitando condiciones de carrera antes de que despierte el Agente IA y reactivando `isNewLead: true` si el hilo llevaba `> 7 días` inactivo); (c) en `crm_contacts/{contactId}` (`firstAdSourceId` first-touch + `interactedAdIds` multi-touch) y en el diccionario único `crm_settings/meta_campaigns`. Ver [`references/04-ai-automations-5-subtabs-spec.md`](./references/04-ai-automations-5-subtabs-spec.md) (Sección 14).
 4. **Citas (`QuotedMessagePreview`), Formato `WhatsAppText` y Búsqueda Anti-XSS**:
    - Citas bidireccionales con `scrollIntoView` + resaltado ámbar de `2.2s` (incluyendo miniaturas dentro de `ImageGridBubble`).
    - Renderizado de formato WhatsApp (`*negrita*`, `_cursiva_`, `~tachado~`, `` `código` ``) y resaltado de búsqueda en **JSX puro** (prohibido `dangerouslySetInnerHTML` sobre texto crudo de WhatsApp).
@@ -1137,7 +1201,8 @@ export function generateSearchPrefixes(
   phone?: string,
   email?: string,
   company?: string,
-  defaultCountryCode?: string
+  defaultCountryCode?: string,
+  identificationNumber?: string
 ): string[] {
   const prefixes = new Set<string>();
 
@@ -1171,10 +1236,26 @@ export function generateSearchPrefixes(
     }
   }
 
+  if (identificationNumber) {
+    const cleanId = identificationNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    for (let i = 1; i <= Math.min(cleanId.length, 25); i++) {
+      prefixes.add(cleanId.slice(0, i));
+    }
+    const digitsOnly = identificationNumber.replace(/\D/g, '');
+    if (digitsOnly && digitsOnly !== cleanId) {
+      for (let i = 1; i <= Math.min(digitsOnly.length, 25); i++) {
+        prefixes.add(digitsOnly.slice(0, i));
+      }
+    }
+  }
+
   prefixes.delete('');
   return Array.from(prefixes).slice(0, 500);
 }
 ```
+
+- **Tokenizador Invertido de Mensajes (`generateMessageSearchTokens` — `<= 45` tokens)**:
+  Para buscar cualquier palabra, factura, SKU, teléfono o cédula en el **100% del historial de mensajes** (sin límite de `3,000` documentos), cada documento en `crm_conversations/{convId}/messages/{msgId}` almacena `searchTokens: string[]` (`<= 45` tokens NFD sin `STOPWORDS_ES`, con prefijos de `2..8` caracteres hasta el tope de `45`) en **los 6 puntos de escritura** (`saveInboundMessage`, `saveMobileEchoMessage`, `POST /api/crm/messages/send`, `crm-ai-conversation-runner.ts`, `crm-ai-session-state.ts` y `sendWhatsappTemplateAction`). `pickPrimarySearchToken(query)` elige el token más específico (`<= 8` chars) para `where('searchTokens', 'array-contains', primaryToken)` y valida todas las palabras normalizadas en servidor (`0` falsos positivos). Ver implementación completa en [`references/02-chat-workspace-tags-quickreplies.md`](./references/02-chat-workspace-tags-quickreplies.md) (Sección 11.5).
 
 ### 8.2 Las 4 Pestañas Fijas del Chat (`Inbox`, `Míos`, `Todos`, `Operativo`), Hasta 4 Subdivisiones Dinámicas, Vinculación de Empleados y Pipeline Híbrido
 
@@ -1207,51 +1288,48 @@ export interface OperationalDivisionConfig {
   - En *Configuración → Equipo* (al crear/editar un miembro con su número WhatsApp) o desde *Ficha del Contacto / Nuevo Chat*, el administrador puede vincular un contacto con cualquier empleado registrado en `users/{uid}` en 1 clic.
   - Al vincularse, el sistema asigna automáticamente `isOperational: true`, `operationalDivisionId: 'team'`, `linkedUserId: uid`, `linkedUserEmail: email`; si aún no existía conversación abierta, `createNewOutboundChat` la deja creada en `Operativo → Equipo`, y además alimenta automáticamente el selector seguro de teléfonos internos para **`liveWhatsappTest`** en la configuración del Agente IA.
 
-#### C. Pipeline Híbrido de Filtrado y Búsqueda en 3 Niveles (`0 Lecturas Redundantes`)
-1. **Debounce Inteligente (`400 ms`)**: Mientras el usuario teclea en la barra de búsqueda, un `useEffect` espera `400 ms` antes de consultar Firestore, mientras el filtro en memoria responde en `0 ms`.
-2. **Nivel 1 — Filtrado Instantáneo en Memoria (`0 Lecturas Firestore`)**:
-   - Filtra los chats ya presentes en el Singleton (`chats`) comparando `normalizeSearchQuery(chat.contactName)`, `chat.contactPhone` y `normalizeSearchQuery(chat.lastMessage)`.
-   - Aplica en memoria la pestaña activa (`Inbox` / `Míos` / `Todos` / `Operativo` + `chat.operationalDivisionId === activeDivisionId`), chips rápidos (`unread`, `new`, `ai_handling`, `ai_escalated`, `vip_wholesale`), etiquetas (`selectedTags`) y asesores (`selectedAdvisors`).
-3. **Nivel 2 — Búsqueda Histórica N-Gram + Hidratación Bajo Demanda (`≤ 10 Lecturas`)**:
-   - Tras el debounce de `400 ms`, ejecuta sobre `crmPaths(tenantId).contacts`:
-     ```typescript
-     const term = normalizeSearchQuery(debouncedQuery);
-     const contactsSnap = await getDocs(
-       query(
-         collection(firestore, crmPaths(tenantId).contacts),
-         where('searchPrefixes', 'array-contains', term),
-         limit(10)
-       )
-     );
-     ```
-   - Para cada contacto encontrado cuyo hilo **no esté ya en memoria** (`loadedChatsMap`), invoca `fetchConversation({ contactId, phone })` e inyecta el hilo histórico en `onDemandMap` sin abrir listeners globales adicionales.
-4. **Nivel 3 — Hidratación Dinámica al Filtrar por Etiquetas (`loadTagConversations` → `taggedMap`)**:
-   - Ejecuta `where('tagIds', 'array-contains', tagId), orderBy('updatedAt', 'desc'), limit(200)` una sola vez por etiqueta (`loadedTagIds.has(tagId)`), con fallback sin `orderBy` si el índice compuesto sigue construyéndose.
+#### C. Pipeline Híbrido de Filtrado Server-Indexed y Búsqueda Histórica Total (`v5.3` — Sin Techo de RAM)
+1. **Nivel 1 — Filtrado Instantáneo en Memoria (`0 ms`, `0 Lecturas Firestore`)**:
+   - Filtra los chats vivos del Singleton (`chats`) por nombre NFD, teléfono, último mensaje, pestaña activa (`Inbox` / `Míos` / `Todos` / `Operativo` + `operationalDivisionId`), chips rápidos (`unread`, `new`, `ai_handling`, `ai_escalated`, `vip_wholesale`), etiquetas (`selectedTags`) y asesores (`selectedAdvisors`, poblando el selector con `computeUniqueSidebarSellers` que deduplica por `uid` aunque cambie `assignedToName`).
+2. **Nivel 2 — Consultas Server-Indexed Paginadas al Activar Cualquier Chip o Etiqueta (`useCrmFilteredConversations`, `FILTER_PAGE_SIZE = 50`)**:
+   - Si el asesor activa cualquier filtro rápido o etiqueta, **no se limita a la ventana viva en RAM**: consulta directamente los índices compuestos de `crm_conversations` (acotando por `status == 'unassigned'` en `Inbox` o `assignedTo == uid` en `Míos`), soporta `loadMoreFiltered` con `startAfter(cursorDoc)` (`50`/página), evita carreras con `requestSeqRef` y ejecuta **`filteredMap.clear()` inmediatamente al apagar los filtros** para no retener cientos de documentos históricos en RAM.
+3. **Nivel 3 — Búsqueda Histórica RBAC-Safe en Contactos (`useCrmSidebarSearch`, `limit(30)`)**:
+   - Tras debounce de `350 ms`, consulta `crm_contacts` por `searchPrefixes` (nombre, empresa, teléfono local/E.164, email y **cédula/NIT**): `isCrmAdmin` ejecuta una query global `limit(30)`, mientras un asesor regular ejecuta en paralelo **`qOwn` (`where('ownerId', '==', uid)`) + `qShared` (`where('ownerId', '==', null)`)** respetando al 100% `firestore.rules`, e hidrata conversaciones históricas en lotes `where('contactId', 'in', chunk30)` con paginación `"Buscar más contactos"`.
+4. **Nivel 4 — Búsqueda Full-History en Mensajes (`GET /api/crm/messages/search`, `GLOBAL_PAGE_LIMIT = 40`)**:
+   - Consulta `collectionGroup('messages').where('searchTokens', 'array-contains', primaryToken).orderBy('createdAt', 'desc')` paginada con `cursorMs` + `cursorPath` (usando `lastConsumedDoc` cuando llena `40` aciertos) y valida permisos sobre la **conversación padre en vivo** vía `firestore.getAll(...parentRefs)` antes de devolver fragmentos al cliente. Ver [`references/02-chat-workspace-tags-quickreplies.md`](./references/02-chat-workspace-tags-quickreplies.md) (Sección 11).
 
-### 8.3 Arquitectura de Paginación en 4 Niveles (Chats, Mensajes, Salto Histórico y Directorio)
+### 8.3 Arquitectura de Paginación en 4 Niveles + Sockets Anti-Evicción (Chats, Mensajes, Salto Histórico y Directorio)
 
-#### Nivel 1: Singleton Multi-Query Listeners (1 Solo Listener Operativo) + Paginación Progresiva de DOM
-`useCrmConversations` mantiene un **Singleton a nivel de módulo** con conteo de referencias (`subscribers.size`) sobre `crmPaths(tenantId).conversations` que fusiona 5 tajadas acotadas:
-- `recentMap`: `orderBy('lastMessageAt', 'desc'), limit(300)` — tráfico activo reciente.
-- `inboxMap`: `where('status', '==', 'unassigned'), orderBy('lastMessageAt', 'desc'), limit(150)` — ningún lead nuevo sin atender queda oculto.
-- `assignedMap`: `where('assignedTo', '==', currentUser.uid), orderBy('lastMessageAt', 'desc'), limit(300)` — cartera activa del asesor.
-- `unreadMap`: `where('unreadCount', '>', 0), limit(300)` — **garantía cero pérdida**: ningún chat con mensajes sin leer desaparece aunque sea antiguo.
-- `operationalMap` (**Optimización `3 listeners → 1 solo listener`**): `where('isOperational', '==', true), orderBy('lastMessageAt', 'desc'), limit(300)` — trae todas las conversaciones operativas en una única suscripción y subdivide en memoria por `operationalDivisionId` (`0 lecturas extra` al alternar entre las hasta 4 subdivisiones).
-- **Paginación Progresiva en el DOM (`ChatList`)**: Mantiene `visibleCount = 40` (reiniciado al cambiar pestaña/filtro) e incrementa `+40` cuando `scrollTop + clientHeight >= scrollHeight - 240`, envolviendo cada fila en `React.memo(ChatItem)` para scroll a `60 FPS` en móviles con `0 lecturas extra`.
+#### Nivel 1: Singleton Híbrido `LIVE_LIMIT = 80` + Sockets Anti-Evicción por Asesor + `loadMoreTabHistory` (`startAfter`)
+`useCrmConversations` mantiene un **Singleton ref-counted** sobre `crmPaths(tenantId).conversations` que combina bajo consumo de RAM móvil con **0% de pérdida de chats antiguos**:
+- **Ventanas Vivas Ligeras (`LIVE_LIMIT = 80`)**:
+  - `inboxMap`: `where('status', '==', 'unassigned'), orderBy('lastMessageAt', 'desc'), limit(80)`.
+  - `assignedMap`: `where('assignedTo', '==', currentUser.uid), orderBy('lastMessageAt', 'desc'), limit(80)`.
+  - `recentMap` *(solo `isCrmAdmin`)*: `orderBy('lastMessageAt', 'desc'), limit(80)`; `unreadMap` *(solo `isCrmAdmin`)*: `where('unreadCount', '>', 0), orderBy('lastMessageAt', 'desc'), limit(80)`.
+  - `operationalMap` (**1 solo listener**): `where('isOperational', '==', true), orderBy('lastMessageAt', 'desc'), limit(80)` subdividido en memoria por `operationalDivisionId`.
+- **Sockets Anti-Evicción Exclusivos del Asesor (`myUnreadMap` + `myNewLeadsMap`)**:
+  - `myUnreadMap`: `where('assignedTo', '==', uid), where('unreadCount', '>', 0), orderBy('unreadCount', 'desc'), orderBy('lastMessageAt', 'desc'), limit(100)`.
+  - `myNewLeadsMap`: `where('assignedTo', '==', uid), where('isNewLead', '==', true), orderBy('lastMessageAt', 'desc'), limit(100)`.
+  - Garantizan que ningún chat sin leer o lead nuevo de un asesor de alto volumen (`> 300` chats activos) desaparezca jamás de `Míos` aunque tenga días sin mensajes nuevos.
+- **Carga Histórica Infinita por Pestaña (`loadMoreTabHistory(scope)`, `HISTORY_PAGE = 50`)**:
+  - Al llegar al final de `Inbox`, `Míos`, `Todos` u `Operativo`, carga páginas históricas de `50` documentos con `getDocs(... startAfter(cursorDoc), limit(50))` hacia `historyMap` sin inflar listeners permanentes.
+- **Invariante Crítico `lastMessageAt` Nunca `null` + Aislamiento `externalSyncedAt`**:
+  - En Firestore, `lastMessageAt: null` excluye o hunde documentos en `orderBy('lastMessageAt', 'desc')`. Todo creador/mutador (`getOrCreateConversation`, `createNewOutboundChat`, `takeConversation`, `assignConversation`, `transferConversation`, prospectos web y borradores B2B) **DEBE** escribir `lastMessageAt: FieldValue.serverTimestamp()` (o preservar el existente). Las sincronizaciones pasivas de contactos desde ERP externo escriben en `externalSyncedAt` sin alterar `lastMessageAt` ni `updatedAt` de conversaciones inactivas. Incluye además el reparador idempotente `runCrmHistoryRepairAndBackfill` (`--only-new-leads` / `--apply`).
+- **Paginación Progresiva en el DOM (`ChatList`)**: Mantiene `visibleCount = 40` (`+40` en scroll; cuando llega al tope de RAM y `hasMoreHistory === true`, dispara `loadMoreTabHistory(activeTab)`).
 
 #### Nivel 2: Ventana Incremental de Mensajes en el Chat Activo (`useCrmMessages` Modo Normal)
 - Al abrir un chat, solo se suscribe a los **últimos 50 mensajes**: `query(messagesRef, orderBy('createdAt', 'desc'), limit(limitCount))` (`limitCount = 50`).
-- Al subir al tope del historial, `loadMore()` incrementa `limitCount += 50` (solo si `snapshot.docs.length === limitCount`), preservando `scrollHeight` previo para evitar saltos visuales.
+- Al subir al tope del historial, `loadMore()` incrementa `limitCount += 50` (solo si `snapshot.docs.length === limitCount`), preservando `scrollHeight` previo con `useLayoutEffect` pre-paint para evitar saltos visuales.
 - **Hidratación `O(N)` de Citas en Memoria (`0 Lecturas Extra`)**: Construye dos `Map` efímeros (`mediaById` y `mediaByWaId`) sobre los mensajes cargados para hidratar miniaturas `replyTo.mediaUrl` sin hacer `getDoc` individuales.
 
-#### Nivel 3: Salto Histórico Quirúrgico desde el Buscador (`useCrmMessages` Target Window Mode)
-Cuando el asesor busca una palabra clave en un mensaje antiguo y hace clic en el resultado (`targetMessageId`):
+#### Nivel 3: Salto Histórico Quirúrgico desde el Buscador (`useCrmMessages` Target Window Mode `±30`)
+Cuando el asesor busca una palabra clave en un mensaje antiguo (`searchTokens`) y hace clic en el resultado (`targetMessageId`):
 - **Antipatrón prohibido**: Cargar miles de mensajes intermedios desde hoy hasta esa fecha.
-- **Patrón Quirúrgico Target Mode (`~51 lecturas totales`)**:
+- **Patrón Quirúrgico Target Mode (`~61 lecturas totales`)**:
   1. Lee únicamente el documento objetivo `getDoc(doc(messagesRef, targetMessageId))` (`1 lectura`).
-  2. Carga `25` mensajes anteriores (`orderBy('createdAt', 'desc'), startAt(targetDoc), limit(25)`).
-  3. Carga `25` mensajes posteriores (`orderBy('createdAt', 'asc'), startAt(targetDoc), limit(25)`).
-  4. Abre un listener ligero de cola viva (`where('createdAt', '>', newestTime)`) para recibir mensajes entrantes mientras inspecciona el contexto histórico.
+  2. Carga `30` mensajes anteriores (`orderBy('createdAt', 'desc'), startAt(targetDoc), limit(30)`).
+  3. Carga `30` mensajes posteriores (`orderBy('createdAt', 'asc'), startAt(targetDoc), limit(30)`).
+  4. Abre un listener ligero de cola viva (`where('createdAt', '>', newestTime)`) y un botón flotante *"Volver al presente"* para retomar la cola normal en 1 clic.
 
 #### Nivel 4: Paginación Bidireccional por Cursores en Directorio (`useCrmContacts`)
 Para tablas administrativas de miles de contactos (`PAGE_SIZE = 25`), nunca uses `offset`:
@@ -1463,12 +1541,28 @@ export async function runAutoAssignTransaction(
 
     if (!winner) return { assigned: false, reason: 'no_match_in_rotation' };
 
+    // Preservación exacta computeAutoAssignIsNewLead(conv) (v4.24.1):
+    // Si alguien ya contestó por WhatsApp Móvil o CRM Web fuera de horario, conserva isNewLead: false;
+    // pero si un cliente antiguo reingresó por un nuevo anuncio (>7d) y aún nadie le contesta, mantiene true.
+    const hasPriorHumanReply =
+      Boolean(conv.firstResponseAt) ||
+      conv.humanTookOver === true ||
+      conv.lastMessageSender === 'mobile' ||
+      conv.lastMessageSender === 'agent';
+    const isUnansweredReopenedLead =
+      conv.isNewLead === true &&
+      conv.lastMessageSender === 'client' &&
+      Number(conv.unreadCount || 0) > 0;
+
     const nowTs = FieldValue.serverTimestamp();
     tx.update(convRef, {
       status: 'assigned',
       assignedTo: winner.uid,
       assignedToName: winner.name,
       assignedAt: nowTs,
+      lastMessageAt: conv.lastMessageAt || nowTs,
+      wasAutoAssigned: true,
+      isNewLead: !hasPriorHumanReply || isUnansweredReopenedLead,
       updatedAt: nowTs,
     });
 
@@ -2149,10 +2243,10 @@ match /config/app_version {
 
 // 2. Configuración Operativa, Branding Público y Avisos Globales
 match /crm_settings/{docId} {
-  allow read: if docId == 'branding' || hasCrmAccess();
+  allow read: if docId == 'branding' || (docId != 'ai_agent_secrets' && hasCrmAccess());
   allow write: if docId == 'announcements'
     ? isPlatformDeveloper()
-    : isCrmAdmin();
+    : (!(docId in ['ai_agent_secrets', 'cabys_favorites', 'catalog_config', 'help_policies']) && isCrmAdmin());
 }
 
 // 3. Contactos Unificados 360° y Subcolecciones (notes, schedules)
@@ -2205,10 +2299,41 @@ match /crm_whatsapp_templates/{templateId} {
   allow write: if isCrmAdmin() && isModuleLicensed('whatsapp');
 }
 
-// 5. Punto de Venta (POS Modo A Nativo) y Catálogo protegidos por licencia
+// 5. Punto de Venta (POS Modo A Nativo), Catálogo Parametrizable y Plan Contable protegidos por licencia
 match /catalogProducts/{productId} {
   allow read: if hasCrmAccess();
-  allow write: if isCrmAdmin() && isModuleLicensed('pos');
+  allow write: if isCrmAdmin() && (isModuleLicensed('pos') || isModuleLicensed('catalog_master'));
+}
+
+match /productCategories/{categoryId} {
+  allow read: if hasCrmAccess();
+  allow write: if isCrmAdmin() && (isModuleLicensed('pos') || isModuleLicensed('catalog_master'));
+}
+
+match /accountingAccounts/{accountId} {
+  allow read: if hasCrmAccess();
+  allow write: if isCrmAdmin();
+}
+
+// 6. Configuraciones de Catálogo, Favoritos CABYS y Políticas de Ayuda / Bóveda Copiloto IA
+match /crm_settings/catalog_config {
+  allow read: if hasCrmAccess();
+  allow write: if isCrmAdmin();
+}
+
+match /crm_settings/cabys_favorites {
+  allow read: if hasCrmAccess();
+  allow write: if isCrmAdmin() && (isModuleLicensed('pos') || isModuleLicensed('catalog_master'));
+}
+
+match /crm_settings/help_policies {
+  allow read: if hasCrmAccess();
+  allow write: if isCrmAdmin();
+}
+
+// Bóveda privada del Copiloto IA: escritura y lectura exclusivas vía Firebase Admin SDK
+match /crm_help_chats/{chatId} {
+  allow read, write: if false;
 }
 
 match /crm_pos_estimates/{docId} {
@@ -2563,7 +2688,7 @@ service firebase.storage {
 }
 ```
 
-### 11.3 Índices Compuestos Obligatorios (`firestore.indexes.json` — Omnicanal + Invitaciones)
+### 11.3 Índices Compuestos Obligatorios (`firestore.indexes.json` — Omnicanal, Filtros Server-Indexed, Sockets Anti-Evicción & `messages.searchTokens`)
 ```json
 {
   "indexes": [
@@ -2573,6 +2698,14 @@ service firebase.storage {
       "fields": [
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "ASCENDING" }
       ]
     },
     {
@@ -2603,8 +2736,196 @@ service firebase.storage {
       "collectionGroup": "crm_conversations",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "operationalDivisionId", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isSupplier", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isCourier", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isInternal", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "tagIds", "arrayConfig": "CONTAINS" },
         { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tagIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "aiPausedByEscalation", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "aiHandling", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isDistributor", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isNewLead", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "unreadCount", "order": "DESCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "tagIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "aiPausedByEscalation", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "aiHandling", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "isDistributor", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "isNewLead", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "unreadCount", "order": "DESCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assignedTo", "order": "ASCENDING" },
+        { "fieldPath": "tagIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assignedTo", "order": "ASCENDING" },
+        { "fieldPath": "aiPausedByEscalation", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assignedTo", "order": "ASCENDING" },
+        { "fieldPath": "aiHandling", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assignedTo", "order": "ASCENDING" },
+        { "fieldPath": "isDistributor", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assignedTo", "order": "ASCENDING" },
+        { "fieldPath": "isNewLead", "order": "ASCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assignedTo", "order": "ASCENDING" },
+        { "fieldPath": "unreadCount", "order": "DESCENDING" },
+        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
       ]
     },
     {
@@ -2651,8 +2972,42 @@ service firebase.storage {
       "collectionGroup": "crm_contacts",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "ownerId", "order": "ASCENDING" },
+        { "fieldPath": "searchPrefixes", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "lastContactAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_contacts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerId", "order": "ASCENDING" },
+        { "fieldPath": "tagIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "lastContactAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_contacts",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "channelKeys", "arrayConfig": "CONTAINS" },
         { "fieldPath": "lastContactAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "searchTokens", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "messages",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "searchTokens", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
     {
@@ -2740,6 +3095,40 @@ service firebase.storage {
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "catalogProducts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category_id", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "catalogProducts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "accountingAccounts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "crm_help_chats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uid", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [
@@ -2750,6 +3139,7 @@ service firebase.storage {
       "indexes": [
         { "order": "ASCENDING", "queryScope": "COLLECTION" },
         { "order": "DESCENDING", "queryScope": "COLLECTION" },
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" },
         { "order": "DESCENDING", "queryScope": "COLLECTION_GROUP" }
       ]
     },
@@ -2761,13 +3151,22 @@ service firebase.storage {
         { "order": "ASCENDING", "queryScope": "COLLECTION" },
         { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
       ]
+    },
+    {
+      "collectionGroup": "messages",
+      "fieldPath": "searchTokens",
+      "ttl": false,
+      "indexes": [
+        { "arrayConfig": "CONTAINS", "queryScope": "COLLECTION" },
+        { "arrayConfig": "CONTAINS", "queryScope": "COLLECTION_GROUP" }
+      ]
     }
   ]
 }
 ```
 
-### 11.4 Checklist Forense Maestro v5.2 (52 Controles Obligatorios)
-En toda construcción (`MODO A`), expansión (`MODO B`), auditoría (`MODO C`) o ejecución de `node scripts/audit-crm-forensic.mjs .`, verifica los **52 controles obligatorios** (Controles `1..40` consolidados + `41..45` Facturación Hacienda CR v4.4 + `46..52` Suite Comercial Modular, IA Mundo Cerrado y Blindaje PWA):
+### 11.4 Checklist Forense Maestro v5.4 (60 Controles Obligatorios)
+En toda construcción (`MODO A`), expansión (`MODO B`), auditoría (`MODO C`) o ejecución de `node scripts/audit-crm-forensic.mjs .`, verifica los **60 controles obligatorios** (Controles `1..40` consolidados + `41..45` Facturación Hacienda CR v4.4 + `46..52` Suite Comercial Modular, IA Mundo Cerrado y Blindaje PWA + `53..56` Blindaje `131051` Efímeros/CTWA, Sidebar Híbrida Anti-Evicción, Búsqueda Histórica Total y Preservación `isNewLead` Móvil + `57..60` Wizard Interactivo `Ronda 0` / Olas Multi-Agente, Catálogo Parametrizable + Plan Contable, Buscador CABYS en Vivo y Arquitectura IA `<slug>_ai_agent_docs` + Streaming `Click-Pap` + Token Economics):
 
 1. **[PRE-FLIGHT FASE 0 AUTOMATIZADO `7/7 ✅`]** Ejecutado `node scripts/provision-firebase-crm.mjs --project <ID> --owner-email <DEV>` con Plan `Blaze`, Firestore `FIRESTORE_NATIVE`, Auth Email+Google, Storage bucket activo, Web SDK + App Check, Claim `platformDev: true` y `crm_system/tenant_license`.
 2. **[PORTABILIDAD — Cero Hardcodes & Bootstrap Atómico Día 0]** Ningún archivo ni regla contiene correos personales ni `+506` quemados; `/api/crm/setup/bootstrap` bloquea `crm_system/bootstrap` con `.create()`, otorga `isOwner: true` e inicializa país/moneda/timezone.
@@ -2795,7 +3194,7 @@ En toda construcción (`MODO A`), expansión (`MODO B`), auditoría (`MODO C`) o
 24. **[AUTOMATIZACIONES IA 5 SUBTABS + HOJA VIVA]** `General`, `Multimedia y Fuentes`, `Reglas`, `Simulador` con micrófono y `Funcionamiento`.
 25. **[REGLAS O(1) PASE ÚNICO + WORKBOX BYPASS + TAGS WCAG AAA]** `<= 2` lecturas (`getUserData()` + `getRoleData()`), Workbox `NetworkOnly` en `/api/crm/*`, 18 clases `.crm-tag-{hue}` WCAG AAA.
 26. **[CAPTION NATIVO + COLA FIFO `use-crm-send-queue.ts`]** Serialización `200ms` + caption en el último ítem del álbum para evitar errores `502 (#131000)`.
-27. **[HISTORIAL PROFUNDO `±30` + `useLayoutEffect` + BÚSQUEDA `3,000` MSGS]** Anclaje pre-paint en `MessageList` y merging con `GET /api/crm/messages/search`.
+27. **[HISTORIAL PROFUNDO `±30` + `useLayoutEffect` + BÚSQUEDA FULL-HISTORY `messages.searchTokens`]** Anclaje pre-paint en `MessageList` y búsqueda paginada sobre el 100% del historial con `GET /api/crm/messages/search` (`COLLECTION` intra-chat + `COLLECTION_GROUP` global con validación RBAC viva sobre conversación padre).
 28. **[ANALÍTICA DUAL + SLA OMNICANAL MÓVIL O(DÍAS)]** `MetricsLayout` (`General` + `Telemetría IA`), `.select(...CONV_SELECT_FIELDS)`, Horas Pico Dual-Curve y atribución `replyChannel: 'mobile'`.
 29. **[FASE 0.5 WIZARD 4 RONDAS + POS 4 MODOS + IDEMPOTENCIA `SHA-256`]** `PosProviderAdapter` (`Modo A/B1/B2/C`), `usePosCartDraft`, pulso SWR `pos_inventory_pulse`, `pos_idempotency` 120s.
 30. **[PDF MULTILÍNEA + `ChatHeader` + PILA MÓVIL + GUARDRAIL INSTALACIÓN]** `line-clamp-2` en adjuntos, `+ Etiqueta` fuera de `overflow-x-auto`, `useCrmMobileBackLayer`, guardrail 3 capas `installation_inquiry`.
@@ -2821,10 +3220,18 @@ En toda construcción (`MODO A`), expansión (`MODO B`), auditoría (`MODO C`) o
 50. **[CATÁLOGO MAESTRO + EXPOSICIÓN WEB (`web_catalog`) + MOTOR EXCEL 3 PASOS / HOJA MASIVA]** Sincronización atómica `writeBatch` (`{ merge: true }` sin filtrar costos ni borrar fotos web), generador SKU con detección de huecos, plantillas `.xlsx` universales, actualización Excel en 3 pasos (normalizador coma/punto + creación de SKUs faltantes) y tabla `/products/mass-update` con 5 operadores matemáticos ([Blueprint 13](./references/13-master-catalog-web-exposure-excel-engine.md)).
 51. **[MÓDULOS COMERCIALES ACTIVABLES POR PLAN (`tenant_license`)]** Encendido granular de `pricing_approvals` (escalas B2C + aprobación inline en Campana `<Popover>` + Web Push), `b2b_wholesale_portal` (código Crockford Base32 + 4 dígitos WhatsApp, 6 bandas y borrador POS `B2B-XXXX`), `web_leads` (`B2B`/`B2C` con guardia anti-secuestro) y `cash_reconciliation` (links de pago + Caja bimoneda + transferencias/SINPE) ([Blueprint 14 Secciones 1–5](./references/14-modular-addons-pricing-b2b-webleads-pwa.md)).
 52. **[BLINDAJE PLATAFORMA PWA, RADIX UI, WORKBOX RSC & TOPBAR COMPACTA]** Campana sobre `<Popover>` + watchdog `150ms` anti-bloqueo `pointer-events: none`, prevención de bucle `DefaultLane` (`changed ? next : prev`), exclusión de reglas RSC en Workbox, actualización PWA con `reg.update()` + `SKIP_WAITING` (**cero `reg.unregister()`** para preservar Web Push FCM) y `ChatSidebarTopBar` de 3 controles apta para `360px` ([Blueprint 14 Sección 6](./references/14-modular-addons-pricing-b2b-webleads-pwa.md)).
+53. **[BLINDAJE MENSAJES EFÍMEROS / CTWA (`131051 unsupported`) + PRE-FILTRO DE ECOS MÓVILES]** Desactivar mensajes temporales por defecto en WhatsApp Business físico; pre-filtrar antes del candado cualquier `isMetaSystemOrTestPhone` (`/^1555\d{7}$/`), `system`/`ephemeral` y `echo.type === 'unsupported'`; persistir `msg.type === 'unsupported'` entrante con `UNSUPPORTED_INBOUND_PLACEHOLDER_PREFIX` + `msg.referral || msg.context?.referral` + `welcomeMessageText` y abrir con IA en 3 casos (`prepareAiPromptMessages` + `resolveUnsupportedOpeningTurn`) ([Blueprint 04 Sección 14](./references/04-ai-automations-5-subtabs-spec.md)).
+54. **[SIDEBAR HÍBRIDA `LIVE_LIMIT = 80` + SOCKETS ANTI-EVICCIÓN + `lastMessageAt` NUNCA `null`]** Listeners vivos ligeros (`80`) acompañados de sockets exclusivos del asesor (`myUnreadMap` + `myNewLeadsMap`), paginación histórica infinita `loadMoreTabHistory` (`startAfter`, `50`/página), cero escrituras `lastMessageAt: null` en creadores/mutadores y aislamiento `externalSyncedAt` en sincronizaciones pasivas ([Blueprint 02 Sección 11.1–11.2](./references/02-chat-workspace-tags-quickreplies.md)).
+55. **[FILTROS SERVER-INDEXED PAGINADOS + BÚSQUEDA RBAC EN CONTACTOS/CÉDULA E HISTORIAL TOTAL `searchTokens`]** `useCrmFilteredConversations` (`FILTER_PAGE_SIZE = 50`, `.clear()` al apagar filtros), `generateSearchPrefixes` con `identificationNumber` + búsqueda paralela RBAC (`qOwn` + `qShared`, `limit(30)`), y `generateMessageSearchTokens` (`<= 45` tokens en los 6 write-points) consultado por `GET /api/crm/messages/search` con verificación RBAC viva en `firestore.getAll` ([Blueprint 02 Sección 11.4–11.5](./references/02-chat-workspace-tags-quickreplies.md)).
+56. **[INTEGRIDAD `isNewLead` ANTE RESPUESTAS MÓVILES NOCTURNAS + REPARADOR `runCrmHistoryRepairAndBackfill`]** `runAutoAssignTransaction` calcula `computeAutoAssignIsNewLead(conv)` preservando respuestas desde WhatsApp Móvil (`lastMessageSender === 'mobile'` / `firstResponseAt`) y reingresos genuinos sin respuesta, `docToChat` aplica defensa en profundidad en cliente y existe la utilidad idempotente `runCrmHistoryRepairAndBackfill` (`--only-new-leads` / `--apply`) ([Blueprint 02 Sección 11.3 y 11.6](./references/02-chat-workspace-tags-quickreplies.md)).
+57. **[WIZARD INTERACTIVO `Ronda 0..4` + DESPACHO POR OLAS MULTI-AGENTE + CLI PARAMETRIZABLE]** Toda implementación desde cero inicia obligatoriamente con `Ronda 0` (`ask_question`) y Rondas `1..4` antes de aprovisionar, usa `scripts/provision-firebase-crm.mjs` con `--fiscal-code-mode` y `--sku-mode` validados, y en proyectos nuevos sigue el Protocolo de Despacho por Olas (Carbon / Subagentes) con contratos por dominio e `import type` verificados (Secciones `0.0`, `0.5` y `1.4`).
+58. **[CATÁLOGO PARAMETRIZABLE `crm_settings/catalog_config` + PLAN CONTABLE `/products/settings` + AISLAMIENTO `web_catalog`]** `CatalogSchemaConfig` mantiene `stocked | non_stocked | service` activos mientras permite activar/desactivar `Origin`, `Sub-series`, `skuPolicyMode`, `CABYS`, `AccountingAccounts`, `CostAndMargins`, `Barcode` y `WebCatalogSync` sin hardcodear orígenes ni prefijos de marca; `/products/settings` implementa la matriz categoría × cuenta contable (`resolveProductAccounts`) y `web_catalog` nunca expone `price_cost` ni campos privados (Check #11 de `audit-crm-forensic.mjs` y [Blueprint 13](./references/13-master-catalog-web-exposure-excel-engine.md)).
+59. **[BUSCADOR CABYS EN VIVO API HACIENDA + FAVORITOS OFFLINE `crm_settings/cabys_favorites` + AUTOCOMPLETADO IVA]** `/api/crm/catalog/cabys` implementa proxy autenticado RBAC hacia `api.hacienda.go.cr/fe/cabys` con caché en RAM (`30m`), fallback ante caída a favoritos offline en `crm_settings/cabys_favorites`, y `<CabysAutocomplete />` autocompleta el código fiscal CABYS de 13 dígitos y su tarifa IVA correspondiente ([Blueprint 13](./references/13-master-catalog-web-exposure-excel-engine.md)).
+60. **[ARQUITECTURA IA `<slug>_ai_agent_docs` DOBLE TOC + PODA FÍSICA RBAC PRE-LLM + STREAMING `Click-Pap` + DATOS 1-LÍNEA `-90%` + CIRCUIT BREAKER]** Base documental white-label `<slug>_ai_agent_docs/` con `00-CONTENT-TABLE.md` y rangos `Lxxx-Lyyy` (`< 500` líneas/archivo), poda física de archivos y secciones no autorizadas pre-LLM (`retrieveAuthorizedKnowledge`), clasificador determinístico `concise | broad | detailed`, streaming SSE + voz multimodal + chips `<<OPCIONES>>`, serialización ultra-densa en 1 línea (`-65%–75%` tokens) + `Static-First` Caching (`-90%`), bóveda privada `crm_help_chats` (`runTransaction`, `allow read, write: if false;`), y Circuit Breaker multi-ámbito para cuotas Gemini (Check #12 de `audit-crm-forensic.mjs`, [Blueprint 09](./references/09-global-banners-theming-and-help-copilot.md) y [Blueprint 15](./references/15-ai-agents-kb-architecture-and-data-efficiency.md)).
 
 ---
 
-## 12. Especificación Maestra de Eficiencia Extrema, Captions Nativos + Cola FIFO, Lectura de Historial Dual y Suite Analítica + Telemetría IA (`v5.0`)
+## 12. Especificación Maestra de Eficiencia Extrema, Captions Nativos + Cola FIFO, Lectura de Historial Dual y Suite Analítica + Telemetría IA (`v5.4`)
 
 ### 12.1 Reglas de Seguridad `firestore.rules` O(1) de Pase Único (`<= 2` Lecturas por Evaluación — Cero Roles Quemados)
 Para evitar que operaciones masivas (`writeBatch` de etiquetas, reasignación o sincronización operativa) superen el límite de `10 get()` por transacción/batch de Cloud Firestore, las reglas pre-cargan `userDoc = getUserData()` una sola vez y `roleDoc = getRoleData(userDoc)` únicamente cuando el usuario no es PlatformDev/Owner, pasando ambos diccionarios a funciones puras de **0 lecturas adicionales**:
@@ -2905,11 +3312,11 @@ match /crm_settings/ai_agent_secrets {
 }
 ```
 
-### 12.2 Resumen Ejecutivo de los 6 Pilares de Eficiencia, Multimedia, Historial, Analíticas, UX Pulida y Punto de Venta Globalizado (Referencias Cruzadas)
+### 12.2 Resumen Ejecutivo de los 9 Pilares de Eficiencia, Multimedia, Historial, Analíticas, UX Pulida, POS Globalizado, Blindaje Anti-Pérdida, Catálogo Parametrizable y Arquitectura IA White-Label (`v5.4` — Referencias Cruzadas)
 1. **Diseño WCAG AAA Purge-Proof, `isPlainPojo()` SWC-Safe y Workbox Bypass**:
-   - Las 18 clases `.crm-tag-{hue}` y `.crm-tag-dot-{hue}` en `src/app/globals.css`, el resolutor `src/lib/constants/crm-tag-colors.ts`, el sanitizador `isPlainPojo()` + `removeUndefined()` y la configuración `runtimeCaching` de Workbox en `next.config.ts` están especificados íntegramente en [`references/01-design-system-dropdowns-zlayers.md`](./references/01-design-system-dropdowns-zlayers.md).
+   - Las 18 clases `.crm-tag-{hue}` y `.crm-tag-dot-{hue}` en `src/app/globals.css`, el resolutor `src/lib/constants/crm-tag-colors.ts`, el sanitizador `isPlainPojo()` + `removeUndefined()`, el `<TooltipPrimitive.Portal>` global `z-[9999]` y la configuración `runtimeCaching` de Workbox en `next.config.ts` están especificados íntegramente en [`references/01-design-system-dropdowns-zlayers.md`](./references/01-design-system-dropdowns-zlayers.md).
 2. **Envío Nativo de Imágenes con Texto (`caption`), Cola FIFO `use-crm-send-queue.ts`, Lectura de Historial Dual `±30`, Documentos PDF Multilínea sin Scroll Horizontal, `ChatHeader` Refinado y Pila Móvil `useCrmMobileBackLayer`**:
-   - La cola secuencial por conversación (`allocateMonotonicTimestampMs` + `enqueueConversationSend`), la fusión de activos de Marketing + archivos locales con `caption` en el último ítem (`handleSendUnifiedBatch`), el motor dual `useCrmMessages` (Modo Normal + Ventana Objetivo `±30` + listener delta en vivo + hidratación `replyTo`), el anclaje `useLayoutEffect` en `MessageList`, la búsqueda híbrida intra-chat (`3,000` msgs), los singletons `useCrmConversations` (`unreadMap`), `useCrmTags`, `useQuickReplies`, y la Sección 10 con **documentos PDF multilínea (`line-clamp-2 break-words [overflow-wrap:anywhere]`, `isDuplicateDocFilename`), `ChatHeader` con `+ Etiqueta` fuera de `overflow-x-auto`, `ChatContextualToolbar` con `POS`, `EditContactModal` bottom-sheet y `useCrmMobileBackLayer`** están especificados en [`references/02-chat-workspace-tags-quickreplies.md`](./references/02-chat-workspace-tags-quickreplies.md).
+   - La cola secuencial por conversación (`allocateMonotonicTimestampMs` + `enqueueConversationSend`), la fusión de activos de Marketing + archivos locales con `caption` en el último ítem (`handleSendUnifiedBatch`), el motor dual `useCrmMessages` (Modo Normal + Ventana Objetivo `±30` + listener delta en vivo + hidratación `replyTo`), el anclaje `useLayoutEffect` en `MessageList`, la búsqueda indexada intra-chat e histórica total (`messages.searchTokens`), los singletons `useCrmConversations` (`myUnreadMap` + `myNewLeadsMap`), `useCrmTags`, `useQuickReplies`, y la Sección 10 con **documentos PDF multilínea (`line-clamp-2 break-words [overflow-wrap:anywhere]`, `isDuplicateDocFilename`), `ChatHeader` con `+ Etiqueta` fuera de `overflow-x-auto`, `ChatContextualToolbar` con `POS`, `EditContactModal` bottom-sheet y `useCrmMobileBackLayer`** están especificados en [`references/02-chat-workspace-tags-quickreplies.md`](./references/02-chat-workspace-tags-quickreplies.md).
 3. **Edición Inline de Etiquetas, Llavero Rotativo `AES-256-GCM` (`crm-crypto.ts`), Puente Firmado WebP → JPEG, Mapeo 1-a-1 de Vendedores POS (`usePosSellerMapping`) y RBAC Puro (`crm.pos`)**:
    - El componente `SettingsTags.tsx` con edición inline, el llavero criptográfico `crm-crypto.ts` (`enc:v1:...` + `signMediaBridgeToken` / `verifyMediaBridgeToken`), la validación Anti-SSRF `isTrustedWhatsappMediaUrl`, el endpoint `/api/crm/media/whatsapp-jpeg` (`sharp` `mozjpeg: true`), el **Mapeo 1-a-1 de Vendedores POS/ERP con `autoMatchUsers`** y el **RBAC puro sin correos ni roles quemados (`CRM_PERMISSIONS.POS = 'crm.pos'`)** están detallados en [`references/03-settings-hub-and-8-submodules.md`](./references/03-settings-hub-and-8-submodules.md).
 4. **Telemetría IA (`crm_ai_telemetry`), Detector de Cortesía (`isClosingCourtesyMessage`), Procesamiento Multimodal de Audios OGG y Guardrail de 3 Capas Anti-Cotización de Instalación (`installation_inquiry`)**:
@@ -2919,4 +3326,8 @@ match /crm_settings/ai_agent_secrets {
 6. **Punto de Venta (POS) Omnicanal Globalizado de 3 Modos (`PosProviderAdapter`), Borradores por Chat (`usePosCartDraft`), Pulso de Inventario en Vivo (`pos_inventory_pulse`) e Idempotencia `SHA-256` (`pos_idempotency`)**:
    - El contrato `PosProviderAdapter` y su implementación para **Modo A (`FirestoreNativePosAdapter` 100% standalone en Firebase)**, **Modo B1 (`HaciendaCrNativePosAdapter` DGT v4.4 directo en [Blueprint 11](./references/11-hacienda-cr-v44-pos-fiscal-engine.md))**, **Modo B2 (`ErpFiscalPosAdapter` con cápsula de Ledger de Stock e idempotencia)** y **Modo C (`CustomWebhookPosAdapter`)**, la UI universal botón por botón, los borradores híbridos `usePosCartDraft` + `crm_pos_drafts`, el emparejamiento `100% E.164` y el despacho de PDF `<24h` / `>24h` están especificados en [`references/06-pos-point-of-sale-global-spec.md`](./references/06-pos-point-of-sale-global-spec.md).
 7. **Suite Operativa 100% Local (`Entregas / Visitas / Proyectos / Garantías`), Catálogo Maestro + Exposición Web + Plantillas Excel y Add-Ons Comerciales por Plan + Blindaje PWA (`v5.2`)**:
-   - La operación local autónoma con folios `ETG/VIS/PROY/GAR`, calendario multi-día, ruteo GPS/OSRM y `ExternalLogisticsAdapter` opcional está en [`references/12-local-deliveries-agenda-projects-spec.md`](./references/12-local-deliveries-agenda-projects-spec.md); el Catálogo Maestro (`catalogProducts`), Exposición Web (`web_catalog`), plantillas `.xlsx`, asistente de 3 pasos y hoja masiva están en [`references/13-master-catalog-web-exposure-excel-engine.md`](./references/13-master-catalog-web-exposure-excel-engine.md); y los módulos por plan (`pricing_approvals`, `b2b_wholesale_portal`, `web_leads`, `cash_reconciliation`) junto con el blindaje PWA/Radix/Workbox/Web Push están en [`references/14-modular-addons-pricing-b2b-webleads-pwa.md`](./references/14-modular-addons-pricing-b2b-webleads-pwa.md).
+   - La operación local autónoma con folios `ETG/VIS/PROY/GAR`, calendario multi-día, ruteo GPS/OSRM y `ExternalLogisticsAdapter` opcional está en [`references/12-local-deliveries-agenda-projects-spec.md`](./references/12-local-deliveries-agenda-projects-spec.md); el Catálogo Maestro (`catalogProducts`), Exposición Web (`web_catalog`), plantillas `.xlsx`, asistente de 3 pasos y hoja masiva están en [`references/13-master-catalog-web-exposure-excel-engine.md`](./references/13-master-catalog-web-exposure-excel-engine.md); y los módulos por plan (`pricing_approvals`, `b2b_wholesale_portal` con `mode: 'admin_preview'`, `web_leads`, `cash_reconciliation`) junto con el blindaje PWA/Radix/Workbox/Web Push están en [`references/14-modular-addons-pricing-b2b-webleads-pwa.md`](./references/14-modular-addons-pricing-b2b-webleads-pwa.md).
+8. **Blindaje de Webhook `131051` (Mensajes Efímeros / CTWA), Sidebar Híbrida Anti-Evicción (`LIVE_LIMIT = 80`), Búsqueda Full-History `messages.searchTokens` e Integridad `isNewLead` Round-Robin (`v5.3`)**:
+   - El pre-filtro de ecos móviles (`echo.type === 'unsupported'`) y teléfonos de prueba `+1555...`, la persistencia visible de `msg.type === 'unsupported'` con `msg.referral || msg.context?.referral` + `welcomeMessageText` y la apertura IA en 3 casos (`prepareAiPromptMessages` + `resolveUnsupportedOpeningTurn`) están especificados en [`references/04-ai-automations-5-subtabs-spec.md`](./references/04-ai-automations-5-subtabs-spec.md) (Sección 14); mientras que los sockets anti-evicción (`myUnreadMap` + `myNewLeadsMap`), `loadMoreTabHistory(scope)`, los filtros server-indexed (`useCrmFilteredConversations`), la búsqueda paralela RBAC en contactos/cédula e historial total de mensajes (`generateMessageSearchTokens` + `GET /api/crm/messages/search`), la preservación de respuestas móviles en `runAutoAssignTransaction` (`computeAutoAssignIsNewLead`) y el reparador idempotente `runCrmHistoryRepairAndBackfill` están especificados en [`references/02-chat-workspace-tags-quickreplies.md`](./references/02-chat-workspace-tags-quickreplies.md) (Sección 11).
+9. **Wizard `Ronda 0`, Catálogo Parametrizable + Buscador CABYS API Hacienda / Plan Contable (`/products/settings`) y Arquitectura de Agentes IA White-Label + Token Economics (`v5.4`)**:
+   - El interrogatorio obligatorio desde cero (`Ronda 0`..`Ronda 4` + CLI `--fiscal-code-mode` / `--sku-mode`) y el **Protocolo de Despacho por Olas (Carbon / Subagentes)** viven en las Secciones `0.0`, `0.5` y `1.4`; el modelo `CatalogSchemaConfig` (`crm_settings/catalog_config`), el generador/validador polimórfico de SKUs (`generateSku` / `validateSku`), el proxy en vivo `GET /api/crm/catalog/cabys` con favoritos offline (`crm_settings/cabys_favorites`) y autocompletado IVA, las cuentas contables + matriz por categoría (`/products/settings` → `resolveProductAccounts`) y el aislamiento estricto de `price_cost` en `web_catalog` viven en [`references/13-master-catalog-web-exposure-excel-engine.md`](./references/13-master-catalog-web-exposure-excel-engine.md); finalmente, la arquitectura documental `<slug>_ai_agent_docs/` con doble TOC `Lxxx-Lyyy`, poda física RBAC pre-LLM, clasificador `concise | broad | detailed`, streaming SSE anti-parpadeo + voz multimodal + chips `<<OPCIONES>>` (`⌘J` / `Ctrl+J`), serialización ultra-densa en 1 línea (`-65%–75%` tokens) + `Static-First` Prompt Caching (`-90%`), bóveda privada `crm_help_chats` y Circuit Breaker multi-ámbito para Gemini viven en [`references/09-global-banners-theming-and-help-copilot.md`](./references/09-global-banners-theming-and-help-copilot.md) (Sección 4) y [`references/15-ai-agents-kb-architecture-and-data-efficiency.md`](./references/15-ai-agents-kb-architecture-and-data-efficiency.md).

@@ -70,8 +70,17 @@ Permite que clientes mayoristas consulten sus precios por volumen y armen pedido
    - Permite activar `isDistributor`, ver dispositivos `X/3`, copiar `Código`, copiar `Enlace directo` (`?acceso=...`, limpiado al cargar con `history.replaceState`), copiar `Mensaje de invitación para WhatsApp`, `Pausar/Activar` y `Rotar código`.
 2. **Inyección Atómica a Borrador POS (`createB2bOrder`)**:
    - En una sola transacción Firestore crea `b2b_orders/{orderId}`, `b2b_order_metrics/{orderId}` (solo visible para admins) y **`crm_pos_drafts/DRAFT_{orderId}`** (`draftNumber: 'B2B-XXXX'`, `source: 'b2b_portal'`, `useExplicitBase: true`), enviando notificación Web Push al asesor asignado con deep-link `/crm?chatId=...&posFilter=draft`.
-3. **Asistente IA Mayorista (`PortalAiDrawer`)**:
-   - Alimentado exclusivamente por la guía mayorista oficial + `catalog_snapshot` + evaluación en vivo del carrito (`máx. 20 consultas / 10 min`), con prohibición estricta de revelar costos o márgenes internos y devolviendo 3 chips de seguimiento (`---SUGERENCIAS---`).
+3. **Asistente IA Mayorista (`PortalAiDrawer` + FAB Flotante Safe-Area)**:
+   - Lanzador flotante `bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] right-4 sm:right-6 z-40` que se oculta automáticamente cuando `aiOpen || cartOpen` para jamás traslaparse con drawers abiertos, manteniendo el botón de carrito del header compacto (`formatCurrency(evaluation.totalDist)` cuando `totalUnits > 0`).
+   - Alimentado exclusivamente por la guía mayorista oficial + `catalog_snapshot` enriquecido hasta `180` SKUs con `Unidad:${unitLabel}`, `Spec:${description.slice(0, 80)}` y estado de inventario seguro (`Stock:Disponible` vs `Stock:ConsultarStock` cuando `showStockToDistributors` está activo, **jamás exponiendo cantidades físicas de bodega, costos de importación ni nombres internos `BANDA_A..D`**), más el delta exacto del carrito para desbloquear `Nivel Global 1 / 2` y límite de `20 consultas / 10 min`, devolviendo 3 chips de seguimiento (`---SUGERENCIAS---`).
+4. **Modo Vista Previa Admin Zero-Impersonation (`mode: 'admin_preview'` — `v4.23.2`)**:
+   - El botón **Vista Previa** en `/distribuidores` abre `about:blank` de forma síncrona (evitando bloqueadores de popups) e invoca `POST /api/b2b/portal/auth` con `{ mode: 'admin_preview' }` + Bearer token (`isModuleAdmin`).
+   - Acuña una cookie `HttpOnly` HMAC de `8h` con `cid: '__preview_${uid}'` e `isPreview: true`: **cero escrituras en Firestore**, sin contacto ficticio y sin desalojar los `3` dispositivos reales de ningún distribuidor. Bloquea `POST /api/b2b/orders` (`HTTP 403`) y muestra banner de solo lectura en el carrito permitiendo probar escalas y el asistente IA en vivo.
+5. **Paginación Resiliente (`B2bPaginationBar`), KPIs Ligeros (`?mode=summary`), Firma de Config e Imágenes SSOT (`v4.23.1–v4.23.3`)**:
+   - `B2bPaginationBar` unifica paginación por cursores en servidor (`count().get()` + `startAfter` + lookahead `limit + 1` + fallback `FAILED_PRECONDITION` en memoria mientras compilan índices) y paginación local en Simulador/Overrides.
+   - `toPortalSafeOrder()` purga `internalNotes`, `assignedSellerUid`, `createdByUid`, `idempotencyKey`, `posDraftId` y `conversationId` antes de responder al portal externo.
+   - `B2bHeaderKpis` (`?mode=summary`) usa agregaciones `.count()` y difiere la carga pesada del catálogo mediante `visitedTabs` lazy-mount; `buildB2bConfigSignature()` omite escrituras y reconstrucciones de snapshot cuando las reglas guardadas no cambiaron (`deduplicated: true`), usando `web_catalog` como única fuente de imágenes (cero archivos estáticos `/public/images/b2b/`).
+   - `PortalCatalogFilters` comparte un mismo `FilterBody` entre barra lateral sticky desktop (`lg:block w-64 sticky top-28`) y `Sheet` móvil izquierdo (`w-[86vw] max-w-xs` con autocierre al elegir categoría y inputs numéricos sin spinners `text-[16px] sm:text-xs`).
 
 ---
 

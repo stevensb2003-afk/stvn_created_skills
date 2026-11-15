@@ -1084,3 +1084,35 @@ export function AppIcon({ name, weight = 'duotone', className, ...rest }: AppIco
 ```
 
 > **Nota para los Blueprints 02–06**: Aunque dichos blueprints muestran ejemplos con `lucide-react` por compatibilidad histórica con repos existentes, toda pantalla nueva o refactorizada **DEBE** usar `<AppIcon />` (`@phosphor-icons/react`) o resolver nombres guardados en Firestore vía `LEGACY_LUCIDE_ALIASES`.
+
+---
+
+## 10. Blindaje Global de `<TooltipPrimitive.Portal>` (`z-[9999]`), Botones Deshabilitados con Tooltip e Ícono Favicon SVG Adaptativo (`v5.3`)
+
+### 10.1 Portal Obligatorio en `src/components/ui/tooltip.tsx` y `disabledWrapper`
+El componente `TooltipContent` por defecto de plantillas Radix/shadcn carece de `<TooltipPrimitive.Portal>` y usa `z-50`, lo que recorta los tooltips dentro de cabeceras `sticky`, tarjetas con `overflow-hidden`, barras con `backdrop-blur` y drawers `<Sheet>`. Envuelve siempre en `<TooltipPrimitive.Portal>` con `z-[9999]`:
+
+```tsx
+// src/components/ui/tooltip.tsx
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, sideOffset = 6, ...props }, ref) => (
+  <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        'z-[9999] overflow-hidden rounded-lg border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md',
+        className
+      )}
+      {...props}
+    />
+  </TooltipPrimitive.Portal>
+));
+```
+- **Botones deshabilitados (`disabledWrapper`)**: Los elementos `<button disabled>` no disparan eventos de puntero en HTML; cuando un botón deshabilitado deba explicar el motivo en un tooltip, envuélvelo en `<span className="inline-flex" tabIndex={0}>`.
+- **Inputs numéricos limpios (`NO_SPINNER_NUMBER_CLASS`)**: Aplica `[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none` junto con `text-[16px] sm:text-xs` en celdas de cantidad/descuento/precio.
+
+### 10.2 Favicon SVG Adaptativo Claro/Oscuro (`public/favicon.svg`)
+Cuando el cliente usa un isotipo vectorial monocromático o bicolor, incluye `@media (prefers-color-scheme: dark)` embebido dentro del `<svg>` (`fill: #0f172a` en pestañas claras del navegador y `fill: #f8fafc` en pestañas oscuras) para garantizar contraste legible en cualquier sistema operativo.
