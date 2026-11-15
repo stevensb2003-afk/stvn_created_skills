@@ -1,66 +1,64 @@
-# Manual Maestro del Ecosistema `steven-*` (CRM v5.2, Cloud, Hacienda CR v4.4 y UI/UX)
+# Manual Maestro del Ecosistema `steven-*` (CRM v5.2, Cloud, UI/UX y Tools)
 
-> Guía práctica de referencia para **Steven, colaboradores y cualquier equipo** que instale este repositorio. Explica cómo se conectan las **17 skills `steven-*`**, la skill maestra autocontenida **`steven-waba-dualhook-connection` v5.2**, la suite de diseño UI/UX anti-AI-slop (incluyendo **`anti-vibecoding-design-guardrails`**) y la utilidad **`stevtool-cleanyourtv`**.
+> Guía práctica de referencia para **Steven, colaboradores y cualquier equipo** que instale este repositorio. Explica cómo se conectan las **17 skills `steven-*`**, la skill maestra autocontenida **`steven-waba-dualhook-connection` v5.2**, la suite de diseño UI/UX (incluyendo **`anti-vibecoding-design-guardrails`**) y la herramienta **`stevtool-cleanyourtv`**, organizadas por tipo.
 
 ---
 
-## 1. Mapa Completo del Ecosistema `steven-*` (17 Skills)
-
-La skill maestra [`steven-waba-dualhook-connection`](../steven-skills/steven-waba-dualhook-connection/SKILL.md) (**v5.2**) es **100% autocontenida** (incluye **14 blueprints** en `references/`, **8 scripts CLI/motores `.mjs`** en `scripts/` y **esquemas XSD oficiales v4.4** en `resources/xsd/v4.4/`). Paralelamente, sus capacidades viven como **skills modulares independientes** para reutilizarlas en cualquier otro proyecto:
+## 1. Mapa Completo del Ecosistema
 
 ```mermaid
 flowchart TD
-    DEV["Desarrollador en Antigravity"] -->|"CRM Omnicanal Completo"| MASTER["steven-waba-dualhook-connection v5.2"]
-    DEV -->|"Skills Modulares Reutilizables"| ECO["Infraestructura, Seguridad & UI/UX"]
+    DEV["Desarrollador en Antigravity"] -->|"CRM Omnicanal Completo"| MASTER["crm-and-saas / steven-waba-dualhook-connection v5.2"]
+    DEV -->|"Skills Modulares de Código y Diseño"| ECO["crm-and-saas + cloud-deploy-and-security + ui-ux-and-design"]
+    DEV -->|"Herramientas de Dispositivos"| TOOLS["tools / stevtool-cleanyourtv"]
 
-    MASTER -->|"Fase 0 CLI"| PCLI["scripts/provision-firebase-crm.mjs (APIs, App Check, Seed)"]
+    MASTER -->|"Fase 0 CLI"| PCLI["scripts/provision-firebase-crm.mjs"]
     MASTER -->|"Fase 8 Auditoría"| ACLI["scripts/audit-crm-forensic.mjs"]
     MASTER -->|"Hacienda CR v4.4"| HCLI["scripts/sign-and-validate-v44.mjs + resources/xsd/v4.4/*.xsd"]
-    MASTER -->|"14 Blueprints"| REFS["references/01..14 (White-Label, POS 4 Modos, Hacienda CR, IG/FB, RBAC, B2B/PWA)"]
 
-    ECO --> BOOT["steven-firebase-client-bootstrap (GCP/Firebase + 2 Ramas demo->main)"]
-    ECO --> MOD["steven-module-architect (Scanner + Alta guiada de módulos)"]
-    ECO --> RBAC["steven-rbac-invitations-licensing (3 Planos + Invites SHA-256 + /developer)"]
-    ECO --> THEME["steven-whitelabel-theming-banners (Paletas WCAG + Phosphor + Banner Jira + Copiloto)"]
+    ECO --> BOOT["steven-firebase-client-bootstrap (GCP/Firebase + demo->main)"]
+    ECO --> MOD["steven-module-architect (Scanner + Alta guiada)"]
+    ECO --> RBAC["steven-rbac-invitations-licensing (3 Planos + Invites + /developer)"]
+    ECO --> THEME["steven-whitelabel-theming-banners (Paletas WCAG + Phosphor + Banner + Copiloto)"]
     ECO --> META["steven-meta-omnichannel-identity (IG Direct + Messenger + Unificación 360)"]
     ECO --> HACIENDA["steven-integracion-hacienda (Motor standalone TRIBU-CR v4.4)"]
 
     BOOT -->|"Release & Version Gate"| DEPLOY["steven-project-deploy"]
     THEME -->|"Docs BRD para Copiloto"| BRD["steven-brd-docs-bootstrap"]
-    ECO -.->|"Web, OAuth & Performance"| WEB["steven-oauth-verifier / steven-seo-seguridad-web / steven-web-performance-http-compression"]
-    ECO -.->|"Craft UI/UX, Motion & Iconos"| UI["steven-ui-craft-anti-slop / steven-ui-motion-and-interaction-engineering / steven-agentic-ai-interface-ux / steven-auth-and-password-ux / steven-pictogrammers-icon-lib / anti-vibecoding-design-guardrails"]
+    ECO -.->|"OAuth, SEO & Performance"| WEB["steven-oauth-verifier / steven-seo-seguridad-web / steven-web-performance-http-compression"]
+    ECO -.->|"Craft UI/UX, Motion & Iconos"| UI["anti-vibecoding-design-guardrails / steven-ui-craft-anti-slop / steven-ui-motion-and-interaction-engineering / steven-agentic-ai-interface-ux / steven-auth-and-password-ux / steven-pictogrammers-icon-lib"]
 ```
 
 ---
 
-## 2. Catálogo Completo por Capa
+## 2. Catálogo Completo por Tipo
 
-### Capa 1 — CRM, SaaS, Firebase & Facturación (7 Skills)
-1. **[`steven-waba-dualhook-connection`](../steven-skills/steven-waba-dualhook-connection/README.md)** *(v5.2)* — Skill maestra universal para construir, aprovisionar, extender o auditar un CRM Omnicanal (WhatsApp Dualhook + IG + Messenger) con POS de 4 modos, Facturación Hacienda CR v4.4, Catálogo Maestro, Entregas/Agenda, Add-Ons B2B/PWA y licenciamiento `/developer`.
-2. **[`steven-firebase-client-bootstrap`](../steven-skills/steven-firebase-client-bootstrap/README.md)** — Provisioner CLI/REST multi-proyecto Firebase + App Check + CI/CD 2 ramas (`demo` → `main`).
-3. **[`steven-module-architect`](../steven-skills/steven-module-architect/README.md)** — Escáner `analyze-project-architecture.mjs` + protocolo para agregar módulos sin romper tokens CSS, RBAC ni docs IA.
-4. **[`steven-rbac-invitations-licensing`](../steven-skills/steven-rbac-invitations-licensing/README.md)** — RBAC dinámico en 3 planos (`platformDev` / Owner / `roles/{roleId}`), invitaciones SHA-256 72h por subdominio, panel `/developer` y webhooks HMAC (Stripe/Tilopay/Paddle).
-5. **[`steven-meta-omnichannel-identity`](../steven-skills/steven-meta-omnichannel-identity/README.md)** — Instagram Direct + Facebook Messenger nativos (`Graph v25.0`), Auto-Discovery 1-Token y unificación 360° (`channelKeys`).
-6. **[`steven-integracion-hacienda`](../steven-skills/steven-integracion-hacienda/README.md)** — Motor standalone Node.js para Facturación Electrónica Costa Rica DGT v4.4 / TRIBU-CR (`XAdES-EPES` + XSD v4.4, Outbox `PRE_SAVED`, cero PHP/AGPLv3).
-7. **[`steven-brd-docs-bootstrap`](../steven-skills/steven-brd-docs-bootstrap/README.md)** — Base documental `/*_ai_agent_docs/` estilo BRD multi-rol con EGM y compilación automática de rangos `Lxxx-Lyyy`.
+### Tipo 1: `crm-and-saas/` — Código de Producto, CRM, SaaS & Facturación CR (6 Skills)
+1. **[`steven-waba-dualhook-connection`](../crm-and-saas/steven-waba-dualhook-connection/README.md)** *(v5.2)* — Skill maestra universal para construir, aprovisionar, extender o auditar un CRM Omnicanal (WhatsApp Dualhook + IG + Messenger) con POS de 4 modos, Facturación Hacienda CR v4.4, Catálogo Maestro, Entregas/Agenda, Add-Ons B2B/PWA y licenciamiento `/developer`.
+2. **[`steven-module-architect`](../crm-and-saas/steven-module-architect/README.md)** — Escáner `analyze-project-architecture.mjs` + protocolo para agregar módulos sin romper tokens CSS, RBAC ni docs IA.
+3. **[`steven-rbac-invitations-licensing`](../crm-and-saas/steven-rbac-invitations-licensing/README.md)** — RBAC dinámico en 3 planos (`platformDev` / Owner / `roles/{roleId}`), invitaciones SHA-256 72h por subdominio, panel `/developer` y webhooks HMAC (Stripe/Tilopay/Paddle).
+4. **[`steven-meta-omnichannel-identity`](../crm-and-saas/steven-meta-omnichannel-identity/README.md)** — Instagram Direct + Facebook Messenger nativos (`Graph v25.0`), Auto-Discovery 1-Token y unificación 360° (`channelKeys`).
+5. **[`steven-integracion-hacienda`](../crm-and-saas/steven-integracion-hacienda/README.md)** — Motor standalone Node.js para Facturación Electrónica Costa Rica DGT v4.4 / TRIBU-CR (`XAdES-EPES` + XSD v4.4, Outbox `PRE_SAVED`, cero PHP/AGPLv3).
+6. **[`steven-brd-docs-bootstrap`](../crm-and-saas/steven-brd-docs-bootstrap/README.md)** — Base documental `/*_ai_agent_docs/` estilo BRD multi-rol con EGM y compilación automática de rangos `Lxxx-Lyyy`.
 
-### Capa 2 — Deploy, OAuth, SEO/GEO, Seguridad HTTP & Performance (4 Skills)
-8. **[`steven-project-deploy`](../steven-skills/steven-project-deploy/README.md)** — Despliegue seguro Firebase App Hosting (SSR `instrumentation.ts`) y Classic Hosting (`postdeploy`) con Version Gate reactivo SemVer.
-9. **[`steven-oauth-verifier`](../steven-skills/steven-oauth-verifier/README.md)** — Verificación de dominio, Google Search Console, Google OAuth Consent, anti-fugas `firebaseapp.com` y cumplimiento CR (Ley 8968 y Ley 7472).
-10. **[`steven-seo-seguridad-web`](../steven-skills/steven-seo-seguridad-web/README.md)** — Clasificador Fase 0 (CRM vs Web B2C vs Portal B2B vs Híbrido), SEO On-Page, GEO/LLMO (`/llms.txt`), Security Headers Grado `A+`, PWA y GA4/Meta Pixel.
-11. **[`steven-web-performance-http-compression`](../steven-skills/steven-web-performance-http-compression/README.md)** — Compresión Brotli/Zstd/Gzip, configuración Nginx/Express/Fastify/Vite/Cloud Run, SSE (`X-Accel-Buffering: no`) y prevención de `ERR_CONTENT_DECODING_FAILED`.
+### Tipo 2: `cloud-deploy-and-security/` — Cloud, Deploy, OAuth, SEO & Performance (5 Skills)
+7. **[`steven-firebase-client-bootstrap`](../cloud-deploy-and-security/steven-firebase-client-bootstrap/README.md)** — Provisioner CLI/REST multi-proyecto Firebase + App Check + CI/CD 2 ramas (`demo` → `main`).
+8. **[`steven-project-deploy`](../cloud-deploy-and-security/steven-project-deploy/README.md)** — Despliegue seguro Firebase App Hosting (SSR `instrumentation.ts`) y Classic Hosting (`postdeploy`) con Version Gate reactivo SemVer.
+9. **[`steven-oauth-verifier`](../cloud-deploy-and-security/steven-oauth-verifier/README.md)** — Verificación de dominio, Google Search Console, Google OAuth Consent, anti-fugas `firebaseapp.com` y cumplimiento CR (Ley 8968 y Ley 7472).
+10. **[`steven-seo-seguridad-web`](../cloud-deploy-and-security/steven-seo-seguridad-web/README.md)** — Clasificador Fase 0 (CRM vs Web B2C vs Portal B2B vs Híbrido), SEO On-Page, GEO/LLMO (`/llms.txt`), Security Headers Grado `A+`, PWA y GA4/Meta Pixel.
+11. **[`steven-web-performance-http-compression`](../cloud-deploy-and-security/steven-web-performance-http-compression/README.md)** — Compresión Brotli/Zstd/Gzip, configuración Nginx/Express/Fastify/Vite/Cloud Run, SSE (`X-Accel-Buffering: no`) y prevención de `ERR_CONTENT_DECODING_FAILED`.
 
-### Capa 3 — UI/UX Craft, Motion, Iconografía & Anti-Slop (6 `steven-*` + 1 Guardrail)
-12. **[`steven-whitelabel-theming-banners`](../steven-skills/steven-whitelabel-theming-banners/README.md)** — Estudio visual en vivo (8 paletas WCAG AA/AAA con `--primary`/`--secondary`/`--tertiary`, Zero-FOUC), `@phosphor-icons/react` `<AppIcon />`, Banner Global estilo Jira y Copiloto IA gratuito (`gemini-2.5-flash-lite`).
-13. **[`steven-pictogrammers-icon-lib`](../steven-skills/steven-pictogrammers-icon-lib/README.md)** — Bóveda local compartida (`~/.local/share/pictogrammers/`) y extractor selectivo sin dependencias npm para MDI, MDI Light y Memory Icons.
-14. **[`steven-ui-craft-anti-slop`](../steven-skills/steven-ui-craft-anti-slop/README.md)** — 20 reglas Anti-AI Slop, color perceptual `OKLCH`, radios concéntricos, sombras ambientales y tarjetas Neo-Brutalistas.
-15. **[`steven-ui-motion-and-interaction-engineering`](../steven-skills/steven-ui-motion-and-interaction-engineering/README.md)** — Física de animaciones UI, curvas exactas, `0ms` en flujos frecuentes, principios Disney y leyes cognitivas de UX.
-16. **[`steven-agentic-ai-interface-ux`](../steven-skills/steven-agentic-ai-interface-ux/README.md)** — 7 patrones para UI de chat y agentes IA (empty states accionables, *Labor Illusion*, citas verificables, streaming Zero-CLS, *Brushing & Linking* y HITL + Undo).
-17. **[`steven-auth-and-password-ux`](../steven-skills/steven-auth-and-password-ux/README.md)** — Flujos de login y contraseña sin fricción (1 CTA, sin Confirm Password, *Reward Early / Punish Late*, SVG Closure y Peak-End).
-18. **[`anti-vibecoding-design-guardrails`](../design-guardrails/anti-vibecoding-design-guardrails/README.md)** — Guardrails estrictos anti-vibecoding con presets tipográficos, regex lint y lista negra de copywriting genérico.
+### Tipo 3: `ui-ux-and-design/` — Diseño UI/UX, Anti-Slop, Motion & Iconografía (7 Skills)
+12. **[`anti-vibecoding-design-guardrails`](../ui-ux-and-design/anti-vibecoding-design-guardrails/README.md)** — Guardrails estrictos anti-vibecoding con presets tipográficos, regex lint y lista negra de copywriting genérico.
+13. **[`steven-ui-craft-anti-slop`](../ui-ux-and-design/steven-ui-craft-anti-slop/README.md)** — 20 reglas Anti-AI Slop, color perceptual `OKLCH`, radios concéntricos, sombras ambientales y 22 superficies no planas.
+14. **[`steven-ui-motion-and-interaction-engineering`](../ui-ux-and-design/steven-ui-motion-and-interaction-engineering/README.md)** — Física de animaciones UI, curvas exactas, `0ms` en flujos frecuentes, principios Disney y leyes cognitivas de UX.
+15. **[`steven-whitelabel-theming-banners`](../ui-ux-and-design/steven-whitelabel-theming-banners/README.md)** — Estudio visual en vivo (8 paletas WCAG AA/AAA con `--primary`/`--secondary`/`--tertiary`, Zero-FOUC), `@phosphor-icons/react` `<AppIcon />`, Banner Global estilo Jira y Copiloto IA gratuito (`gemini-2.5-flash-lite`).
+16. **[`steven-pictogrammers-icon-lib`](../ui-ux-and-design/steven-pictogrammers-icon-lib/README.md)** — Bóveda local compartida (`~/.local/share/pictogrammers/`) y extractor selectivo sin dependencias npm para MDI, MDI Light y Memory Icons.
+17. **[`steven-agentic-ai-interface-ux`](../ui-ux-and-design/steven-agentic-ai-interface-ux/README.md)** — 7 patrones para UI de chat y agentes IA (empty states accionables, *Labor Illusion*, citas verificables, streaming Zero-CLS, *Brushing & Linking* y HITL + Undo).
+18. **[`steven-auth-and-password-ux`](../ui-ux-and-design/steven-auth-and-password-ux/README.md)** — Flujos de login y contraseña sin fricción (1 CTA, sin Confirm Password, *Reward Early / Punish Late*, SVG Closure y Peak-End).
 
-### Capa 4 — Herramientas de Dispositivos (`stevtools/`)
-19. **[`stevtool-cleanyourtv`](../stevtools/stevtool-cleanyourtv/README.md)** — Gestor aislado multi-TV de CleanYourTV para Android TV / Google TV con perfiles por dispositivo, auditoría ADB `check-compat`, debloat y parches de la edición personal.
+### Tipo 4: `tools/` — Herramientas de Dispositivos (1 Skill)
+19. **[`stevtool-cleanyourtv`](../tools/stevtool-cleanyourtv/README.md)** — Gestor aislado multi-TV de CleanYourTV para Android TV / Google TV con perfiles por dispositivo, auditoría ADB `check-compat`, debloat y parches de la edición personal.
 
 ---
 

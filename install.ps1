@@ -4,13 +4,14 @@
 
 .EXAMPLE
     .\install.ps1 -All
-    .\install.ps1 -Category steven-skills
+    .\install.ps1 -Category ui-ux-and-design
+    .\install.ps1 -Category tools
     .\install.ps1 -Skill steven-oauth-verifier
     .\install.ps1 -Target ".\.agents\skills"
 #>
 param(
     [switch]$All,
-    [ValidateSet("", "steven-skills", "stevtools", "design-guardrails", "creative-agency-video")]
+    [ValidateSet("", "crm-and-saas", "cloud-deploy-and-security", "ui-ux-and-design", "tools", "creative-agency-video")]
     [string]$Category = "",
     [string]$Skill = "",
     [string]$Target = "$env:USERPROFILE\.gemini\config\skills",
@@ -19,7 +20,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Categories = @("steven-skills", "stevtools", "design-guardrails", "creative-agency-video")
+$Categories = @("crm-and-saas", "cloud-deploy-and-security", "ui-ux-and-design", "tools", "creative-agency-video")
 
 if ($List) {
     foreach ($cat in $Categories) {

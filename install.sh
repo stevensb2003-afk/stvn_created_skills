@@ -4,7 +4,8 @@
 #
 # Uso:
 #   ./install.sh                         # Instala todas las skills (copia)
-#   ./install.sh --category steven-skills
+#   ./install.sh --category ui-ux-and-design
+#   ./install.sh --type tools
 #   ./install.sh --skill steven-oauth-verifier
 #   ./install.sh --link                  # Usa symlinks (útil para git pull)
 #   ./install.sh --target ./.agents/skills
@@ -20,7 +21,7 @@ CATEGORY=""
 SKILL_NAME=""
 LIST_ONLY=0
 
-CATEGORIES=("steven-skills" "stevtools" "design-guardrails" "creative-agency-video")
+CATEGORIES=("crm-and-saas" "cloud-deploy-and-security" "ui-ux-and-design" "tools" "creative-agency-video")
 
 usage() {
   cat <<EOF
@@ -28,8 +29,9 @@ Uso: $(basename "$0") [opciones]
 
 Opciones:
   --all                 Instalar todas las categorías (por defecto)
-  --category <nombre>   Instalar solo una categoría:
-                        steven-skills | stevtools | design-guardrails | creative-agency-video
+  --category, --type <nombre>
+                        Instalar solo un tipo/categoría:
+                        crm-and-saas | cloud-deploy-and-security | ui-ux-and-design | tools | creative-agency-video
   --skill <nombre>      Instalar una skill específica por nombre de carpeta
   --target <ruta>       Carpeta destino (por defecto: ~/.gemini/config/skills)
   --link                Crear enlaces simbólicos (symlinks) en vez de copiar
@@ -41,7 +43,7 @@ EOF
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --all) CATEGORY=""; SKILL_NAME=""; shift ;;
-    --category) CATEGORY="${2:-}"; shift 2 ;;
+    --category|--type) CATEGORY="${2:-}"; shift 2 ;;
     --skill) SKILL_NAME="${2:-}"; shift 2 ;;
     --target) TARGET_DIR="${2:-}"; shift 2 ;;
     --link) MODE="link"; shift ;;
